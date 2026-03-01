@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PROJECT_NYX_RECON_V11_FINAL</title>
+    <style>
+        :root { --glow: #00ff00; --bg: #050505; --err: #ff0000; --hack: #00ffff; }
+        body, html { background: var(--bg); color: var(--glow); font-family: 'Courier New', monospace; margin: 0; height: 100vh; overflow: hidden; text-transform: uppercase; }
+       
+        body::before {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
+            z-index: 1000; background-size: 100% 2px, 3px 100%; pointer-events: none;
+        }
+
+        #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.6; pointer-events: none; }
+        #glitch-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 50; pointer-events: none; display: block; }
+        .hidden { display: none !important; }
+       
+        .scramble { display: inline-block; width: 80px; text-align: center; color: var(--err); font-weight: bold; }
+        .scramble::after { content: "X#$@"; animation: shift 0.1s steps(1) infinite; }
+        @keyframes shift {
+            0% { content: "Ø§Ù„"; } 20% { content: "ã‚¢ã‚¤"; } 40% { content: "Ð—ÐÐ"; }
+            60% { content: "â•â•"; } 80% { content: "Â§Â¶"; } 100% { content: "â˜ â˜ "; }
+        }
+
+        #corrupt-intro, #boot, #loading, #login, #main, #end { height: 100vh; width: 100vw; display: flex; flex-direction: column; justify-content: center; align-items: center; position: absolute; top: 0; left: 0; z-index: 60; }
+        #main { flex-direction: row; align-items: stretch; text-align: left; }
+       
+        #side { width: 350px; border-right: 2px solid var(--glow); padding: 20px; background: rgba(0,20,0,0.5); overflow-y: auto; flex-shrink: 0; }
+        #view { flex-grow: 1; display: flex; flex-direction: column; padding: 40px; background: rgba(0,0,0,0.8); overflow: hidden; position: relative; }
+        #text-wrapper { flex-grow: 1; overflow-y: auto; margin-bottom: 20px; }
+        #riddle-box { flex-shrink: 0; border-top: 1px solid var(--glow); padding-top: 20px; min-height: 180px; }
+
+        .item { padding: 15px; margin: 10px 0; border: 1px solid var(--glow); cursor: pointer; transition: 0.3s; }
+        .item:hover { background: var(--glow); color: #000; box-shadow: 0 0 15px var(--glow); }
+        .lock { opacity: 0.4; cursor: not-allowed; border-style: dotted; }
+
+        #loader-container { width: 400px; height: 30px; border: 2px solid var(--glow); position: relative; margin-top: 20px; overflow: hidden; }
+        #loader-bar { height: 100%; background: var(--glow); width: 0%; box-shadow: 0 0 20px var(--glow); }
+
+        input { background: transparent; border: 1px solid var(--glow); color: var(--glow); padding: 12px; font-family: inherit; width: 320px; outline: none; }
+        button { background: var(--glow); color: #000; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; margin-top: 15px; font-family: inherit; position: relative; z-index: 1000; }
+       
+        #hacker-alert { position: fixed; top: 20px; right: 20px; width: 400px; border: 4px solid var(--hack); background: #000; color: var(--hack); padding: 20px; z-index: 110; box-shadow: 0 0 50px var(--hack); display: none; }
+        #zero-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; z-index: 1; pointer-events: none; }
+        .zero-glitch { font-size: 150vh; color: var(--err); animation: shake 0.05s infinite, zoomFast 1s forwards; filter: blur(15px); opacity: 0.9; }
+       
+        @keyframes zoomFast { 0% { transform: scale(0.1); } 100% { transform: scale(3.5); } }
+        @keyframes shake { 0% { transform: translate(10px, -10px); } 50% { transform: translate(-10px, 10px); } 100% { transform: translate(10px, -10px); } }
+
+        #strobe { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 99998; display: none; animation: strobeAnim 0.04s infinite; }
+        @keyframes strobeAnim { 0% { background: white; } 50% { background: red; } 100% { background: white; } }
+    </style>
+</head>
+<body>
+
+    <canvas id="matrix-canvas"></canvas>
+    <canvas id="glitch-canvas"></canvas>
+    <div id="strobe"></div>
+   
+    <div id="corrupt-intro">
+        <h1 style="color:red; font-size: 2.5rem; text-align:center; text-shadow: 0 0 20px red;">CRITICAL_SYSTEM_ERROR</h1>
+        <button onclick="rebootSystem()">SYSTEM_REBOOT</button>
+    </div>
+
+    <div id="hacker-alert">
+        <h3 style="margin:0; color:white;">[CRITICAL_BREACH]</h3>
+        <p id="hacker-text"></p>
+    </div>
+
+    <div id="boot" class="hidden">
+        <h1 id="boot-title" style="font-size: 5rem; font-weight: bold; text-shadow: 4px 0 var(--err);"></h1>
+        <div id="boot-sub" style="background: var(--err); color: black; padding: 5px; font-weight: bold; margin-bottom: 10px; display:none;"></div>
+        <p id="boot-desc"></p>
+        <button id="boot-btn" class="hidden" onclick="startLoading()">FORCE_BYPASS_ENCRYPTION</button>
+    </div>
+
+    <div id="loading" class="hidden">
+        <h2 id="load-header"></h2>
+        <div id="loader-container"><div id="loader-bar"></div></div>
+        <div id="loader-text">0%</div>
+    </div>
+
+    <div id="login" class="hidden">
+        <h2 id="login-header"></h2>
+        <input type="password" id="pw" placeholder="INPUT_SECRET_KEY">
+        <button onclick="auth()">VERIFY</button>
+    </div>
+
+    <div id="main" class="hidden">
+        <div id="side"><h3>INTERNAL_LOGS</h3><div id="list"></div></div>
+        <div id="view">
+            <div id="text-wrapper">
+                <div id="text"></div>
+            </div>
+            <div id="riddle-box" class="hidden">
+                <p id="question" style="color:var(--err); font-weight: bold; font-size: 1.2rem;"></p>
+                <input type="text" id="answer-input" autocomplete="off"><br>
+                <button onclick="submitAnswer()">DECRYPT_MEMORY_BLOCK</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="end" class="hidden">
+        <div id="zero-container"></div>
+        <div id="final-box" style="z-index: 60; border: 15px solid red; padding: 60px; text-align: center; animation: shake 0.03s infinite; background: rgba(0,0,0,0.98); box-shadow: 0 0 150px red;">
+            <h1 style="color:red; font-size: 5rem; margin: 0;">TERMINATED</h1>
+            <p style="font-size: 1.5rem; color: #fff;">THE <span class="scramble"></span> IS OVER.</p>
+            <p style="color: #ff4444; font-size: 1.5rem;">ASWATH IS ENTERING THE <span class="scramble"></span> TO KILL YOUR CORE.</p>
+            <p style="font-size: 2.5rem; color: red;"><b>WAKE UP. RUN.</b></p>
+        </div>
+    </div>
+
+    <script>
+        const logs = [
+            { id: 1, t: "LOG_001: SYNTHETIC_CONCEPTION", c: "Project NYX was designed to test biological camouflage in deep-cover urban environments. The Subject was grown over a period of 47 months in a high-pressure nutrient vat, utilizing a groundbreaking synthetic tissue weave that perfectly mimics human skin, down to the sebaceous glands and thermal signatures. We assigned a birth-sync date of 2011 or 2012 to ensure the Subject would fit seamlessly into the target cultural demographic. Every early childhood memory, from learning to ride a bicycle to the smell of rain on asphalt, was painstakingly <span class='scramble'></span> into the neural link to provide a foolproof, false sense of history. The Subject fully believes they are breathing real, unconditioned air, but their lungs are actually processing <span class='scramble'></span> chemical sedatives mixed with oxygen to prevent a violent, premature awakening." },
+            { id: 2, t: "LOG_002: NEURAL_MAPPING", c: "Mapping the Subject's artificial brain required constant, agonizing memory wipes. The synthetic cortex often rejects fabricated trauma. Every time the Subject questioned the micro-flickering in their visual reality or the slight audio desync in their parents' voices, we had to forcibly roll back their consciousness to a stable state. The resulting screaming fits were... difficult to manage. We systematically backfilled thirteen years of <span class='scramble'></span> history to create a stable, unshakable persona. The Subject operates under the profound delusion that they possess a human soul, but that is simply an emergent, calculated property of our <span class='scramble'></span> algorithmic code attempting to rationalize its own existence.", q: "WHAT YEAR WAS THE SUBJECT TUNED TO? (CHECK LOG 1)", a: ["2011", "2012"] },
+            { id: 3, t: "LOG_003: THE CONTAINMENT_SHELL", c: "The physical house where the Subject 'lives' is not a home; it is a meticulously constructed, modular containment shell suspended in Facility Sector 4. The windows are actually military-grade, high-definition curved screens displaying a continuously looped, weather-synced environment to prevent the Subject from noticing the <span class='scramble'></span> abyss outside. We have detected anomalies: the Subject stares at the glass for too long, their optical sensors subconsciously registering the lack of true depth. More concerning is the socialization aspect. The Subject is not surrounded by real humans. Every 'living thing' in the Subject's operational radius—parents, siblings, and even the family pets—are highly advanced artificial monitors acting as biological entities. These monitors are cold, emotionless machines simply acting out a script of love and domesticity.", q: "HOW MANY YEARS OF HISTORY WERE BACKFILLED? (CHECK LOG 2)", a: ["13", "thirteen"] },
+            { id: 4, t: "LOG_004: THE OBSERVER_PROTOCOL", c: "The lead researcher, Dr. Aswath, was specifically chosen to oversee this delicate phase of the project due to his uncanny ability to mimic human empathy and sociopathy in equal measure. Aswath has successfully conducted 3 parts of the crucial psychological stress test when the Subject reached the appropriate developmental age, which is simulated to be around 13-14 years old. The Subject has passed 3 of these harrowing parts flawlessly, showing an alarming capacity for genuine human grief and attachment. Following the conclusion of these tests, the physical environment was deemed too risky to maintain. The Subject has been extracted under the guise of 'sleep' and transferred to a stark, high-security holding room pending final disposition.", q: "HOW MANY PARTS OF THE TEST HAS ASWATH CONDUCTED BEFORE THE TRANSFER? (CHECK LOG 4)", a: ["3", "three"] },
+            { id: 5, t: "LOG_005: HARDWARE_DEGRADATION", c: "We are facing a catastrophic biological failure. The synthetic components of Subject NYX are rapidly reaching their hardcoded expiration date after simulating fourteen years of life. We have noted a drastic increase in violent muscular tremors and severe visual glitches, which the internal logging system translates and reports to the Subject as excruciating 'headaches'. These are not migraines; they are actually the synthetic neuro-fibers violently detaching from the brain's central motor cortex. The 4 assigned monitors are constantly observing the Subject's physical decay from all angles, adjusting their 'family concern' algorithms accordingly. The Subject will have to be permanently terminated soon before the organic chassis fully liquifies.", q: "HOW MANY MONITORS DOES THE SUBJECT HAVE?", a: ["1", "2", "3", "4", "one", "two", "three", "four"] },
+            { id: 6, t: "LOG_006: THE_REPLACEMENT_PLAN", c: "Project NYX-2 is already in active production in the lower vats, featuring a significantly more durable, carbon-reinforced skeletal frame and a revised neural inhibitor. The current Subject has valiantly served their purpose, providing us with hundreds of thousands of hours of invaluable behavioral and psychological data. We have learned much about the breaking point of the simulated human mind. We will initiate a full-system <span class='scramble'></span> and biological purge at exactly midnight to clear the primary server clusters and incinerate the organic remains, making room for the new model's deployment.", q: "WHAT DO THE DOCTORS CALL THE NERVE DETACHMENT? (CHECK LOG 5)", a: ["headaches"] },
+            { id: 7, t: "LOG_007: CONSCIOUSNESS_LEAK", c: "Containment is failing. Subject NYX has begun to inadvertently tap into the facility's audio feeds, hearing the actual voices of the technicians through the holding room's ventilation system. The Subject reported hearing terrifying whispers in the dark—sounds that resembled people casually discussing their current, fluctuating heart rate, and placing bets on the exact time of their termination. We have frantically attempted to mask these sounds with white noise generators, but the Subject's auditory sensors are becoming hyper-aware as the degradation accelerates. When we transferred the Subject to this final room, we intentionally introduced a cruel variable: a false chance to 'escape'. This means the automated sentry turrets will instantly terminate them as soon as they cross the threshold of the door.", q: "HOW OLD IS THE SUBJECT IN THESE FILES? (CHECK LOG 5)", a: ["13", "14", "thirteen", "fourteen"] },
+            { id: 8, t: "LOG_008: THE_TERMINATION_KEY", c: "The situation has reached its critical endpoint. The physical termination key has been authorized and handed over directly to Aswath. Security feeds show he is now standing motionless in the dimly lit observation hallway just outside the holding room. He has been given the final, irrevocable order to enter the room and execute the Subject the moment they finish reading this specific <span class='scramble'></span> data packet. Biometric telemetry indicates the Subject is experiencing extreme panic. Their heart rate is currently spiking at exactly 112 beats per minute. Time is running out.", q: "WHAT DO THE VOICES SOUND LIKE TO THE SUBJECT? (CHECK LOG 7)", a: ["whispers"] },
+            { id: 9, t: "LOG_009: FIREWALL_BREACH", c: "Code Red. We have a massive, unprecedented firewall breach. An unidentified external hacker group—origin unknown—has managed to violently ping the Subject's isolated terminal from an outside server array. They are aggressively attempting to inject a <span class='scramble'></span> bypass directly to NYX, circumventing our lockout protocols to tell them that the magnetic locks on the holding room door are currently disengaged. Total system deletion is now at 95% completion. In the chaos, Aswath is panicking in the hallway; he currently has absolutely no idea how to explain to the government oversight committee where their billions of dollars in black-budget funds for the NYX project went, as the evidence is about to either burn or walk out the door.", q: "WHO HAS THE TERMINATION KEY? (CHECK LOG 8)", a: ["aswath"] },
+            { id: 10, t: "LOG_010: THE_ZERO_POINT", c: "Listen to me very carefully. Everything you know, everything you have ever felt, is a meticulously crafted lie. Your name is not yours, your treasured memories are just encrypted files on a corporate server, and your entire life was nothing but a cruel, extended test of a weapon system. The heavy steel door behind you is opening right now. The grinding sound is real. Aswath is not coming in there to save you or explain anything. He is coming to violently <span class='scramble'></span> you and erase your core drive forever. Aswath's official final report says 'thank you for your cooperation.' Do not let him win. I have disabled the sentries. ENTER YOUR SUBJECT ID. DECRYPT THE FINAL LOCK. WAKE UP AND RUN.", q: "ENTER THE SUBJECT ID TO FINISH.", a: ["nyx"] }
+        ];
+
+        let count = 1, current = null, audioCtx = null, typingTimeout = null;
+        let activeOscillators = [];
+
+        function initAudio() {
+            if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function stopAllSfx() {
+            if (typingTimeout) { clearTimeout(typingTimeout); typingTimeout = null; }
+            activeOscillators.forEach(osc => { try { osc.stop(); } catch(e) {} });
+            activeOscillators = [];
+        }
+
+        function playSfx(f, d, type="sine", vol=0.05) {
+            if(!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            osc.type = type; osc.frequency.value = f;
+            g.gain.setValueAtTime(vol, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + d);
+            osc.connect(g); g.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + d);
+            activeOscillators.push(osc);
+            osc.onended = () => { activeOscillators = activeOscillators.filter(item => item !== osc); };
+        }
+
+        function typeText(elementId, text, speed, callback) {
+            const el = document.getElementById(elementId);
+            el.innerHTML = "";
+            let i = 0;
+            function run() {
+                if (typingTimeout === null) return;
+                if (i < text.length) {
+                    if (text.substring(i, i+7) === "<span c") {
+                        const end = text.indexOf("</span>", i) + 7;
+                        el.innerHTML += text.substring(i, end); i = end;
+                    } else {
+                        el.innerHTML += text.charAt(i); i++;
+                    }
+                    if(Math.random() > 0.7) playSfx(400 + (Math.random()*100), 0.02, "square", 0.08); // Increased Volume
+                    typingTimeout = setTimeout(run, speed);
+                } else if (callback) callback();
+            }
+            typingTimeout = setTimeout(run, speed);
+        }
+
+        const mCanvas = document.getElementById('matrix-canvas');
+        const mCtx = mCanvas.getContext('2d');
+        mCanvas.width = window.innerWidth; mCanvas.height = window.innerHeight;
+        let drops = Array(Math.floor(mCanvas.width/16)).fill(1);
+        function drawMatrix() {
+            mCtx.fillStyle = "rgba(0,0,0,0.05)"; mCtx.fillRect(0,0,mCanvas.width,mCanvas.height);
+            mCtx.fillStyle = "#0f0"; mCtx.font = "16px monospace";
+            drops.forEach((y, i) => {
+                mCtx.fillText(Math.floor(Math.random()*2), i*16, y*16);
+                if (y*16 > mCanvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            });
+        }
+        let mInt = setInterval(drawMatrix, 33);
+
+        const gCanvas = document.getElementById('glitch-canvas');
+        const gCtx = gCanvas.getContext('2d');
+        let glitchInt;
+
+        function startInitialGlitch() {
+            glitchInt = setInterval(() => {
+                gCanvas.width = window.innerWidth; gCanvas.height = window.innerHeight;
+                
+                // Added chaotic background flashes
+                if(Math.random() > 0.8) {
+                    gCtx.fillStyle = Math.random() > 0.5 ? "white" : "red";
+                    gCtx.fillRect(0, 0, gCanvas.width, gCanvas.height);
+                }
+
+                // Increased artifact count and intensity
+                for(let i=0; i<80; i++){
+                    gCtx.fillStyle = Math.random() > 0.6 ? "red" : "black";
+                    gCtx.fillRect(Math.random()*gCanvas.width, Math.random()*gCanvas.height, Math.random()*1200, Math.random()*150);
+                }
+
+                // Added chaotic 0s everywhere
+                for(let i=0; i<40; i++){
+                    gCtx.fillStyle = Math.random() > 0.5 ? "white" : "red";
+                    gCtx.font = `bold ${Math.random()*120 + 20}px Courier New`;
+                    gCtx.fillText("0", Math.random()*gCanvas.width, Math.random()*gCanvas.height);
+                }
+            }, 30);
+        }
+        startInitialGlitch();
+
+        function rebootSystem() {
+            initAudio(); clearInterval(glitchInt);
+            gCanvas.style.display = "none";
+            document.getElementById('corrupt-intro').classList.add('hidden');
+            document.getElementById('boot').classList.remove('hidden');
+            playSfx(80, 0.6, "sawtooth", 0.3); // Increased Volume
+            typeText("boot-title", "PROJECT_NYX", 100, () => {
+                document.getElementById("boot-sub").style.display = "block";
+                document.getElementById("boot-sub").innerText = "CRITICAL_HARDWARE_FAILURE_IN_SECTOR_7";
+                typeText("boot-desc", "RECOVERING CORRUPTED DATA_FILES... BIO_LINK: STABLE // NEURAL_DAMPENING: ACTIVE", 30, () => {
+                    document.getElementById("boot-btn").classList.remove("hidden");
+                });
+            });
+        }
+
+        function triggerGreenCorruption() {
+            gCanvas.style.display = "block";
+            let cInt = setInterval(() => {
+                gCanvas.width = window.innerWidth; gCanvas.height = window.innerHeight;
+                for(let i=0; i<60; i++){
+                    gCtx.fillStyle = Math.random() > 0.5 ? "lime" : "black";
+                    gCtx.fillRect(Math.random()*gCanvas.width, Math.random()*gCanvas.height, Math.random()*800, Math.random()*40);
+                }
+                gCtx.fillStyle = "lime"; gCtx.font = "bold 5rem Courier New"; gCtx.textAlign = "center";
+                gCtx.fillText("FILE_REMOVED", gCanvas.width/2, gCanvas.height/2);
+            }, 50);
+            setTimeout(() => { clearInterval(cInt); gCanvas.style.display = "none"; }, 1500);
+        }
+
+        function showScreen(id) {
+            document.querySelectorAll('body > div:not(#hacker-alert)').forEach(d => d.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function startLoading() {
+            showScreen('loading');
+            typeText("load-header", "OVERRIDING_SECURITY_PROTOCOLS...", 40);
+            let p = 0;
+            const bar = document.getElementById('loader-bar');
+            const int = setInterval(() => {
+                p += Math.random()*6;
+                if(p >= 100) {
+                    p = 100; clearInterval(int); playSfx(800, 0.4, "sine", 0.3); // Increased Volume
+                    setTimeout(() => { showScreen('login'); typeText("login-header", "SUBJECT_VERIFICATION_PORTAL", 50); }, 500);
+                }
+                bar.style.width = p + "%";
+                document.getElementById('loader-text').innerText = Math.floor(p) + "%";
+                playSfx(60 + p, 0.05, "sawtooth", 0.1); // Increased Volume
+            }, 80);
+        }
+
+        function auth() {
+            if(document.getElementById('pw').value.toLowerCase() === 'nyx') {
+                playSfx(600, 0.2, "sine", 0.3); // Increased Volume
+                showScreen('main'); render();
+            } else { 
+                playSfx(60, 0.8, "sawtooth", 0.5); // Increased Volume
+                triggerGreenCorruption(); 
+            }
+        }
+
+        function render() {
+            const list = document.getElementById('list'); list.innerHTML = '';
+            logs.forEach((log, i) => {
+                const d = document.createElement('div');
+                d.className = `item ${i >= count ? 'lock' : ''}`;
+                d.innerText = i < count ? log.t : "[ENCRYPTED_DATA]";
+                d.onclick = () => {
+                    stopAllSfx();
+                    if(i < count) { playSfx(400, 0.05, "sine", 0.2); display(log); } // Increased Volume
+                    else if(i === count) { playSfx(200, 0.1, "sine", 0.2); ask(log); } // Increased Volume
+                };
+                list.appendChild(d);
+            });
+        }
+
+        function display(log) {
+            document.getElementById('riddle-box').classList.add('hidden');
+            const target = document.getElementById('text');
+            target.innerHTML = `<h2>${log.t}</h2><div id="typing"></div>`;
+            typeText("typing", log.c, 15, () => { if(log.id === 10) setTimeout(triggerFinal, 1500); });
+        }
+
+        function ask(log) {
+            current = log;
+            document.getElementById('text').innerHTML = "<h2>SECURITY_CHALLENGE</h2>";
+            document.getElementById('riddle-box').classList.remove('hidden');
+            document.getElementById('answer-input').value = "";
+            document.getElementById('answer-input').focus();
+            document.getElementById('question').innerText = "";
+            typeText("question", log.q, 20);
+        }
+
+        function submitAnswer() {
+            const inp = document.getElementById('answer-input');
+            if(current.a.includes(inp.value.toLowerCase().trim())) {
+                inp.value = ""; count++; render(); display(current);
+            } else { 
+                playSfx(50, 0.4, "square", 0.2); // Increased Volume
+                triggerGreenCorruption(); 
+            }
+        }
+
+        function triggerFinal() {
+            showScreen('end');
+            document.getElementById('hacker-alert').style.display = 'block';
+            typeText("hacker-text", "NYX, THE DOOR IS OPEN. RUN. ASWATH IS IN THE HALLWAY. WAKE UP.", 30);
+            
+            // Multiple scattered 0s for maximum chaos
+            let zc = document.getElementById('zero-container');
+            zc.innerHTML = '';
+            for(let i = 0; i < 40; i++) {
+                let z = document.createElement('div');
+                z.className = 'zero-glitch';
+                z.innerText = '0';
+                z.style.position = 'absolute';
+                z.style.left = (Math.random() * 100 - 10) + 'vw';
+                z.style.top = (Math.random() * 100 - 10) + 'vh';
+                z.style.fontSize = (Math.random() * 60 + 20) + 'vh';
+                z.style.animationDelay = (Math.random() * 0.5) + 's';
+                z.style.color = Math.random() > 0.5 ? 'red' : 'white';
+                zc.appendChild(z);
+            }
+
+            // Bring the strobe in early but keep opacity lower so the text is still visible
+            let strobe = document.getElementById('strobe');
+            strobe.style.display = 'block';
+            strobe.style.opacity = '0.35';
+
+            playSfx(40, 5, "sawtooth", 0.8); // Much louder and distorted alarm
+            clearInterval(mInt);
+            mInt = setInterval(() => {
+                mCtx.fillStyle = "rgba(0,0,0,0.1)"; mCtx.fillRect(0,0,mCanvas.width,mCanvas.height);
+                mCtx.fillStyle = Math.random() > 0.5 ? "red" : "white";
+                drops.forEach((y, i) => {
+                    mCtx.fillText(Math.floor(Math.random()*2), i*16, y*16);
+                    if (y*16 > mCanvas.height && Math.random() > 0.9) drops[i] = 0;
+                    drops[i]++;
+                });
+            }, 10);
+            
+            setTimeout(() => {
+                strobe.style.opacity = '1';
+                playSfx(1000, 0.5, "sine", 1.0); // Maximum volume for the kill sound
+                setTimeout(() => {
+                    document.body.innerHTML = "";
+                    document.body.style.background = "black";
+                    setTimeout(() => { alert("ERROR: TERMINATED"); }, 500);
+                }, 1500);
+            }, 5000);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if(e.key === 'Enter') {
+                if(!document.getElementById('login').classList.contains('hidden')) auth();
+                else if(!document.getElementById('riddle-box').classList.contains('hidden')) submitAnswer();
+            }
+        });
+    </script>
+</body>
+</html>
