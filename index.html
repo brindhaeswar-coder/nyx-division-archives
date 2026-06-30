@@ -1,382 +1,2451 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>PROJECT_NYX_RECON_V24_FINAL</title>
-    <style>
-        :root { --glow: #00ff00; --bg: #050505; --err: #ff0000; --hack: #00ffff; }
-        body, html { background: var(--bg); color: var(--glow); font-family: 'Courier New', monospace; margin: 0; height: 100vh; overflow: hidden; text-transform: uppercase; }
-       
-        body::before {
-            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
-            z-index: 1000; background-size: 100% 2px, 3px 100%; pointer-events: none;
-        }
-
-        #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.6; pointer-events: none; }
-        #glitch-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 50; pointer-events: none; display: block; }
-        .hidden { display: none !important; }
-       
-        .scramble { display: inline-block; width: 80px; text-align: center; color: var(--err); font-weight: bold; }
-        .scramble::after { content: "X#$@"; animation: shift 0.1s steps(1) infinite; }
-        @keyframes shift {
-            0% { content: "Ø§Ù„"; } 20% { content: "ã‚¢ã‚¤"; } 40% { content: "Ð—ÐÐ"; }
-            60% { content: "â•â•"; } 80% { content: "Â§Â¶"; } 100% { content: "â˜ â˜ "; }
-        }
-
-        #corrupt-intro, #boot, #loading, #login, #main, #end { height: 100vh; width: 100vw; display: flex; flex-direction: column; justify-content: center; align-items: center; position: absolute; top: 0; left: 0; z-index: 60; }
-        #main { flex-direction: row; align-items: stretch; text-align: left; }
-       
-        #side { width: 350px; border-right: 2px solid var(--glow); padding: 20px; background: rgba(0,20,0,0.5); overflow-y: auto; flex-shrink: 0; }
-        #view { flex-grow: 1; display: flex; flex-direction: column; padding: 40px; background: rgba(0,0,0,0.8); overflow: hidden; position: relative; }
-        #text-wrapper { flex-grow: 1; overflow-y: auto; margin-bottom: 20px; }
-        #riddle-box { flex-shrink: 0; border-top: 1px solid var(--glow); padding-top: 20px; min-height: 180px; }
-
-        .item { padding: 15px; margin: 10px 0; border: 1px solid var(--glow); cursor: pointer; transition: 0.3s; }
-        .item:hover { background: var(--glow); color: #000; box-shadow: 0 0 15px var(--glow); }
-        .lock { opacity: 0.4; cursor: not-allowed; border-style: dotted; }
-
-        #loader-container { width: 400px; height: 30px; border: 2px solid var(--glow); position: relative; margin-top: 20px; overflow: hidden; }
-        #loader-bar { height: 100%; background: var(--glow); width: 0%; box-shadow: 0 0 20px var(--glow); }
-
-        input { background: transparent; border: 1px solid var(--glow); color: var(--glow); padding: 12px; font-family: inherit; width: 320px; outline: none; }
-        button { background: var(--glow); color: #000; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; margin-top: 15px; font-family: inherit; position: relative; z-index: 1000; }
-       
-        #hacker-alert { position: fixed; top: 20px; right: 20px; width: 400px; border: 4px solid var(--hack); background: #000; color: var(--hack); padding: 20px; z-index: 110; box-shadow: 0 0 50px var(--hack); display: none; }
-        #zero-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; z-index: 1; pointer-events: none; }
-        .zero-glitch { font-size: 150vh; color: var(--err); animation: shake 0.05s infinite, zoomFast 1s forwards; filter: blur(15px); opacity: 0.9; }
-       
-        @keyframes zoomFast { 0% { transform: scale(0.1); } 100% { transform: scale(3.5); } }
-        @keyframes shake { 0% { transform: translate(10px, -10px); } 50% { transform: translate(-10px, 10px); } 100% { transform: translate(10px, -10px); } }
-
-        #strobe { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 99998; display: none; animation: strobeAnim 0.04s infinite; }
-        @keyframes strobeAnim { 0% { background: white; } 50% { background: red; } 100% { background: white; } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TypeCraft Arcade - Premium Standalone Hub</title>
+  <!-- Three.js CDN for Silent Descent 3D -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #020205;
+      font-family: var(--font-sans);
+      color: #e2e8f0;
+    }
+    
+    /* Layout */
+    #arcade-hub {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+    }
+    
+    /* Header tabs switcher */
+    header {
+      height: 56px;
+      background: #09090b;
+      border-b: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+      z-index: 100;
+      flex-shrink: 0;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand svg {
+      color: #10b981;
+    }
+    .brand span {
+      font-size: 14px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: #f1f5f9;
+    }
+    .switcher-tabs {
+      display: flex;
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 2px;
+    }
+    .tab-btn {
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      color: #020205;
+      font-weight: 900;
+    }
+    .tab-btn.biodome.active { background: #10b981; }
+    .tab-btn.sandbox.active { background: #06b6d4; }
+    .tab-btn.descent.active { background: #f43f5e; }
+    .tab-btn:hover:not(.active) {
+      color: #f1f5f9;
+    }
+    
+    /* Content frames container */
+    #viewports {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .game-view {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: none;
+    }
+    .game-view.active {
+      display: block;
+    }
+    
+    /* Global Glassmorphic UI utilities */
+    .glass-panel {
+      background: rgba(10, 15, 30, 0.85);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    }
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #94a3b8;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      background: rgba(10, 15, 30, 0.85);
+      transition: all 0.2s;
+    }
+    .icon-btn:hover {
+      color: #f1f5f9;
+      background: rgba(10, 15, 30, 0.98);
+      transform: scale(1.05);
+    }
+    .action-btn {
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .screen-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(4, 4, 10, 0.92);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 24px;
+    }
+    .overlay-card {
+      max-width: 600px;
+      width: 100%;
+      padding: 40px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .title-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    .subtitle {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-top: 4px;
+    }
+    .desc-text {
+      color: #94a3b8;
+      font-size: 13px;
+      margin-top: 16px;
+      line-height: 1.6;
+    }
+    
+    /* ------------------------------------------------------------- */
+    /* 1. BIODOME: OUTBREAK CSS */
+    /* ------------------------------------------------------------- */
+    #view-biodome {
+      position: relative;
+      display: none;
+      width: 100%;
+      height: 100%;
+    }
+    #view-biodome.active {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #biodome-canvas {
+      display: block;
+      background-color: #08070d;
+      max-width: 100%;
+      max-height: 100%;
+      aspect-ratio: 1200 / 800;
+      object-fit: contain;
+    }
+    #biodome-hud {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .hud-card {
+      padding: 8px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      pointer-events: auto;
+    }
+    .health-bar-outer {
+      width: 110px;
+      height: 8px;
+      background: #0b0f19;
+      border: 1px solid #1e293b;
+      border-radius: 9999px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .health-bar-inner {
+      height: 100%;
+      background: #10b981;
+      width: 100%;
+    }
+    #biodome-upgrades {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      padding: 12px 24px;
+      z-index: 10;
+      max-width: 95%;
+      overflow-x: auto;
+      pointer-events: auto;
+    }
+    .up-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 6px 12px;
+      background: rgba(10, 15, 30, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      color: #64748b;
+      cursor: not-allowed;
+      transition: all 0.2s;
+    }
+    .up-btn.active {
+      color: #e2e8f0;
+      cursor: pointer;
+    }
+    .up-btn.active:hover {
+      transform: translateY(-2px);
+    }
+    .up-btn.mitosis.active { background: rgba(14, 116, 144, 0.2); border-color: rgba(34, 211, 238, 0.4); }
+    .up-btn.phago.active { background: rgba(4, 120, 87, 0.25); border-color: rgba(52, 211, 153, 0.4); }
+    .up-btn.bcell.active { background: rgba(109, 40, 217, 0.25); border-color: rgba(168, 85, 247, 0.4); }
+    .up-btn.nkcell.active { background: rgba(190, 18, 60, 0.25); border-color: rgba(244, 63, 94, 0.4); }
+    .up-btn.nova.active { background: rgba(180, 83, 9, 0.25); border-color: rgba(245, 158, 11, 0.4); }
+    
+    /* Organ selectors */
+    .org-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      width: 100%;
+      margin: 20px 0;
+    }
+    .org-btn {
+      background: rgba(9, 9, 11, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: left;
+      cursor: pointer;
+      height: 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .org-btn.active {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.5);
+    }
+    .org-btn h4 { font-size: 11px; font-weight: 800; color: #f1f5f9; }
+    .org-btn p { font-size: 9px; color: #94a3b8; margin-top: 2px; }
+    .org-btn span { font-size: 8px; font-weight: 800; color: #34d399; margin-top: 4px; }
+    /* ------------------------------------------------------------- */
+    /* 2. ASTROFORGE SANDBOX CSS */
+    /* ------------------------------------------------------------- */
+    #view-sandbox {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: none;
+    }
+    #view-sandbox.active {
+      display: flex;
+    }
+    #sandbox-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: #020204;
+    }
+    #sandbox-sidebar {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      bottom: 16px;
+      width: 250px;
+      z-index: 10;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow-y: auto;
+    }
+    .sidebar-section {
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      padding-bottom: 12px;
+    }
+    .sidebar-section:last-child {
+      border-bottom: none;
+    }
+    .sidebar-title {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #94a3b8;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+    .spawn-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+    .spawn-btn {
+      padding: 6px;
+      border-radius: 8px;
+      background: #0f172a;
+      border: 1px solid rgba(255,255,255,0.05);
+      font-size: 8px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #94a3b8;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .spawn-btn.active {
+      background: #06b6d4;
+      color: #020205;
+    }
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 8px;
+    }
+    .slider-group label {
+      font-size: 9px;
+      color: #64748b;
+    }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: #06b6d4;
+    }
+    #sandbox-hud {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 10;
+      padding: 12px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .fuel-bar-outer {
+      width: 140px;
+      height: 6px;
+      background: #0b0f19;
+      border-radius: 99px;
+      overflow: hidden;
+      margin-top: 2px;
+    }
+    .fuel-bar-inner {
+      height: 100%;
+      background: #06b6d4;
+      width: 100%;
+    }
+    #sandbox-campaign {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 24px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    /* ------------------------------------------------------------- */
+    /* 3. SILENT DESCENT 3D CSS */
+    /* ------------------------------------------------------------- */
+    #view-descent {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: none;
+    }
+    #view-descent.active {
+      display: block;
+    }
+    #descent-mount {
+      width: 100%;
+      height: 100%;
+      background: #000;
+    }
+    #descent-hud {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
+    }
+    #crosshair {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 6px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.4);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+    #descent-left-panel {
+      position: absolute;
+      bottom: 24px;
+      left: 24px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 200px;
+    }
+    #descent-right-panel {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: center;
+    }
+    .descent-value {
+      font-size: 20px;
+      font-weight: 900;
+      color: #ef4444;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    #descent-message {
+      position: absolute;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 8px 24px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #94a3b8;
+    }
+    #descent-journal-view {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 450px;
+      padding: 32px;
+      background: #e2d6b5;
+      color: #2b2518;
+      border-radius: 4px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+      pointer-events: auto;
+      display: none;
+      z-index: 40;
+    }
+    #descent-journal-view h3 {
+      font-size: 16px;
+      font-weight: 900;
+      text-transform: uppercase;
+      border-bottom: 1.5px solid #8c7e60;
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+    }
+    #descent-journal-view p {
+      font-size: 12px;
+      line-height: 1.6;
+      font-style: italic;
+    }
+    #descent-journal-close {
+      margin-top: 20px;
+      padding: 6px 12px;
+      background: #5c543f;
+      color: #e2d6b5;
+      border: none;
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+  </style>
 </head>
 <body>
-
-    <canvas id="matrix-canvas"></canvas>
-    <canvas id="glitch-canvas"></canvas>
-    <div id="strobe"></div>
-   
-    <div id="corrupt-intro">
-        <h1 style="color:red; font-size: 2.5rem; text-align:center; text-shadow: 0 0 20px red;">CRITICAL_SYSTEM_ERROR</h1>
-        <button onclick="rebootSystem()">SYSTEM_REBOOT</button>
-    </div>
-
-    <div id="hacker-alert">
-        <h3 style="margin:0; color:white;">[CRITICAL_BREACH]</h3>
-        <p id="hacker-text"></p>
-    </div>
-
-    <div id="boot" class="hidden">
-        <h1 id="boot-title" style="font-size: 5rem; font-weight: bold; text-shadow: 4px 0 var(--err);"></h1>
-        <div id="boot-sub" style="background: var(--err); color: black; padding: 5px; font-weight: bold; margin-bottom: 10px; display:none;"></div>
-        <p id="boot-desc"></p>
-        <button id="boot-btn" class="hidden" onclick="startLoading()">FORCE_BYPASS_ENCRYPTION</button>
-    </div>
-
-    <div id="loading" class="hidden">
-        <h2 id="load-header"></h2>
-        <div id="loader-container"><div id="loader-bar"></div></div>
-        <div id="loader-text">0%</div>
-    </div>
-
-    <div id="login" class="hidden">
-        <h2 id="login-header"></h2>
-        <input type="password" id="pw" placeholder="INPUT_SECRET_KEY">
-        <button onclick="auth()">VERIFY</button>
-    </div>
-
-    <div id="main" class="hidden">
-        <div id="side"><h3>INTERNAL_LOGS</h3><div id="list"></div></div>
-        <div id="view">
-            <div id="text-wrapper">
-                <div id="text"></div>
+  <div id="arcade-hub">
+    <!-- Top Header Navigation -->
+    <header>
+      <div class="brand">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        <span>TypeCraft Arcade</span>
+      </div>
+      
+      <div class="switcher-tabs">
+        <button id="tab-biodome" class="tab-btn active biodome">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Bio-Dome
+        </button>
+        <button id="tab-sandbox" class="tab-btn sandbox">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          AstroForge
+        </button>
+        <button id="tab-descent" class="tab-btn descent">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4m0 4h.01"/></svg>
+          Silent Descent 3D
+        </button>
+      </div>
+    </header>
+    <div id="viewports">
+      <!-- ------------------------------------------------------------- -->
+      <!-- GAME 1: BIODOME VIEW -->
+      <!-- ------------------------------------------------------------- -->
+      <div id="view-biodome" class="game-view active">
+        <canvas id="biodome-canvas" width="1200" height="800"></canvas>
+        
+        <div id="biodome-hud">
+          <div class="hud-group">
+            <div class="glass-panel hud-card" style="border-color: rgba(16, 185, 129, 0.2);">
+              <span class="hud-label" style="color: #34d399;">Macrophage Health</span>
+              <div class="health-bar-container">
+                <div class="health-bar-outer"><div id="bio-health-bar" class="health-bar-inner"></div></div>
+                <span id="bio-health-txt" style="font-size: 10px; font-weight: 850; margin-left: 6px;">100%</span>
+              </div>
             </div>
-            <div id="riddle-box" class="hidden">
-                <p id="question" style="color:var(--err); font-weight: bold; font-size: 1.2rem;"></p>
-                <input type="text" id="answer-input" autocomplete="off"><br>
-                <button onclick="submitAnswer()">DECRYPT_MEMORY_BLOCK</button>
+            <div class="glass-panel hud-card" style="border-color: rgba(56, 189, 248, 0.2);">
+              <span class="hud-label" style="color: #38bdf8;">Probiotics</span>
+              <span id="bio-bacteria-txt" class="hud-value">4 cells</span>
             </div>
+            <div class="glass-panel hud-card" style="border-color: rgba(234, 179, 8, 0.2);">
+              <span class="hud-label" style="color: #eab308;">Bio-Matter</span>
+              <span id="bio-matter-txt" class="hud-value">30</span>
+            </div>
+            <div class="glass-panel hud-card" style="border-color: rgba(168, 85, 247, 0.2);">
+              <span class="hud-label" style="color: #c084fc;">Preserved</span>
+              <span id="bio-preserved-txt" class="hud-value">6 / 6</span>
+            </div>
+          </div>
+          
+          <div class="hud-group">
+            <div class="glass-panel hud-card" style="border-color: rgba(244, 63, 94, 0.2);">
+              <span id="bio-wave-title" class="hud-label" style="color: #fb7185;">Wave 1</span>
+              <span id="bio-wave-timer" class="hud-value">35s</span>
+            </div>
+            <div class="glass-panel hud-card" style="border-color: rgba(255, 255, 255, 0.08);">
+              <span class="hud-label" style="color: #94a3b8;">Score</span>
+              <span id="bio-score-txt" class="hud-value">0</span>
+            </div>
+          </div>
         </div>
-    </div>
-
-    <div id="end" class="hidden">
-        <div id="zero-container"></div>
-        <div id="final-box" style="z-index: 60; border: 15px solid red; padding: 60px; text-align: center; animation: shake 0.03s infinite; background: rgba(0,0,0,0.98); box-shadow: 0 0 150px red;">
-            <h1 style="color:red; font-size: 5rem; margin: 0;">TERMINATED</h1>
-            <p style="font-size: 1.5rem; color: #fff;">THE <span class="scramble"></span> IS OVER.</p>
-            <p style="color: #ff4444; font-size: 1.5rem;">ASWATH IS ENTERING THE <span class="scramble"></span> TO KILL YOUR CORE.</p>
-            <p style="font-size: 2.5rem; color: red;"><b>WAKE UP. RUN.</b></p>
+        <div id="biodome-upgrades" class="glass-panel">
+          <div class="upgrade-header">
+            <span>Mutations</span>
+            <span>Spend Bio-Matter</span>
+          </div>
+          <div class="upgrade-list">
+            <button id="bio-up-mitosis" class="up-btn mitosis">
+              <span class="btn-name">Mitosis (+2)</span>
+              <span id="bio-cost-mitosis" class="btn-cost">Cost: 15</span>
+            </button>
+            <button id="bio-up-phago" class="up-btn phago">
+              <span class="btn-name">Phagocytosis</span>
+              <span id="bio-cost-phago" class="btn-cost">Cost: 20</span>
+            </button>
+            <button id="bio-up-bcell" class="up-btn bcell">
+              <span class="btn-name">B-Cell</span>
+              <span id="bio-cost-bcell" class="btn-cost">Cost: 40</span>
+            </button>
+            <button id="bio-up-nkcell" class="up-btn nkcell">
+              <span class="btn-name">NK Cell</span>
+              <span id="bio-cost-nkcell" class="btn-cost">Cost: 50</span>
+            </button>
+            <button id="bio-up-nova" class="up-btn nova">
+              <span class="btn-name">Cytokine Nova</span>
+              <span id="bio-cost-nova" class="btn-cost">Cost: 35</span>
+            </button>
+          </div>
         </div>
+        <!-- Intro screen -->
+        <div id="bio-intro" class="screen-overlay">
+          <div class="glass-panel overlay-card">
+            <div class="title-icon" style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: #10b981;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <h1>Bio-Dome: Outbreak</h1>
+            <div class="subtitle">Microscopic Immune System Defense</div>
+            <p class="desc-text">Protect host tissue cells from virus infestation. Ruptured host cells duplicate standard pathogens. Command swarm defenses and perform apoptosis.</p>
+            
+            <div class="org-grid">
+              <button id="bio-org-lungs" class="org-btn active">
+                <h4>Lungs (Alveoli)</h4>
+                <p>Speed increased by 25%. Watch for sudden violent cough wind sweeps.</p>
+                <span>Macrophage speed +25%</span>
+              </button>
+              <button id="bio-org-heart" class="org-btn">
+                <h4>Heart (Myocardium)</h4>
+                <p>Cardiac currents drift floating bodies. High pressure depolarization stuns invaders.</p>
+                <span>Electric stuns active</span>
+              </button>
+              <button id="bio-org-liver" class="org-btn">
+                <h4>Liver (Hepatic Lobule)</h4>
+                <p>Pathogens slowed by 20%. Floating toxic bile clouds damage all cells.</p>
+                <span>Drifting bile clouds</span>
+              </button>
+            </div>
+            <button id="bio-btn-start" class="action-btn" style="background:#10b981; color:#000;">Initialize Defense</button>
+          </div>
+        </div>
+        <!-- GameOver screen -->
+        <div id="bio-gameover" class="screen-overlay" style="display: none;">
+          <div class="glass-panel overlay-card">
+            <div class="title-icon" style="background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.3); color: #f43f5e;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+            </div>
+            <h2 style="font-size:24px; font-weight:900; text-transform:uppercase; color:#f43f5e;">Organ Compromised</h2>
+            <p class="desc-text">Pathogens breached the bio-dome membrane. The host organ has failed.</p>
+            <div class="stat-grid">
+              <div class="stat-card">
+                <span class="stat-label">Final Score</span>
+                <span id="bio-end-score" class="stat-val">0</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-label">Waves Cleared</span>
+                <span id="bio-end-waves" class="stat-val">0</span>
+              </div>
+            </div>
+            <button id="bio-btn-restart" class="action-btn danger" style="background:#f43f5e; color:#fff; width:100%; margin-top:20px;">Reboot System</button>
+          </div>
+        </div>
+      </div>
+      <!-- ------------------------------------------------------------- -->
+      <!-- GAME 2: ASTROFORGE VIEW -->
+      <!-- ------------------------------------------------------------- -->
+      <div id="view-sandbox" class="game-view">
+        <canvas id="sandbox-canvas"></canvas>
+        
+        <div id="sandbox-sidebar" class="glass-panel">
+          <div class="sidebar-section">
+            <h3 class="sidebar-title">Simulator Control</h3>
+            <div style="display: flex; gap: 8px;">
+              <button id="sand-play-btn" class="spawn-btn" style="flex: 1; display:flex; align-items:center; justify-content:center; gap:4px;">
+                <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Pause
+              </button>
+              <button id="sand-reset-btn" class="spawn-btn" style="flex: 1;">Reset</button>
+            </div>
+            <div class="slider-group">
+              <label>Time Speed: <span id="sand-speed-txt">1.0x</span></label>
+              <input id="sand-speed-slider" type="range" min="0" max="2" step="0.25" value="1">
+            </div>
+          </div>
+          <div class="sidebar-section">
+            <h3 class="sidebar-title">Celestial Spawner</h3>
+            <div class="spawn-grid">
+              <button id="spawn-planet" class="spawn-btn active">Planet</button>
+              <button id="spawn-star" class="spawn-btn">Star</button>
+              <button id="spawn-bh" class="spawn-btn">Black Hole</button>
+              <button id="spawn-attractor" class="spawn-btn">Attractor</button>
+              <button id="spawn-repeller" class="spawn-btn">Repeller</button>
+              <button id="spawn-station" class="spawn-btn">Station</button>
+            </div>
+            <div class="slider-group">
+              <label>Spawn Mass: <span id="sand-mass-txt">100</span></label>
+              <input id="sand-mass-slider" type="range" min="10" max="8000" step="50" value="100">
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+              <span style="font-size:9px; color:#64748b;">Gravity Constant</span>
+              <input id="sand-g-slider" type="range" min="0.05" max="0.8" step="0.05" value="0.15" style="width:100px;">
+            </div>
+          </div>
+          <div class="sidebar-section">
+            <h3 class="sidebar-title">Toggles</h3>
+            <div style="display:flex; flex-direction:column; gap:6px; font-size:10px; color:#94a3b8;">
+              <label style="display:flex; align-items:center; gap:6px;">
+                <input id="sand-toggle-grid" type="checkbox" checked> Orbit Gravity Grid
+              </label>
+              <label style="display:flex; align-items:center; gap:6px;">
+                <input id="sand-toggle-trails" type="checkbox" checked> Celestial Trails
+              </label>
+              <label style="display:flex; align-items:center; gap:6px;">
+                <input id="sand-toggle-ship" type="checkbox"> Spacecraft Pilot Mode
+              </label>
+            </div>
+          </div>
+        </div>
+        <div id="sandbox-hud" class="glass-panel">
+          <span style="font-size:9px; font-weight:800; text-transform:uppercase; color:#06b6d4;">Ship Telemetry</span>
+          <div class="health-bar-container">
+            <span style="font-size:8px; color:#64748b; width:35px;">Fuel</span>
+            <div class="fuel-bar-outer"><div id="sand-fuel-bar" class="fuel-bar-inner"></div></div>
+          </div>
+          <span id="sand-ship-status" style="font-size:9px; color:#94a3b8; margin-top:4px;">No spacecraft active. Enable Pilot Mode.</span>
+        </div>
+        <!-- Campaign levels selector -->
+        <div id="sandbox-campaign" class="glass-panel">
+          <span style="font-size:10px; font-weight:800; color:#cbd5e1;">Level:</span>
+          <button id="sand-level-prev" class="spawn-btn" style="padding:4px 8px;">&larr;</button>
+          <span id="sand-level-name" style="font-size:10px; font-weight:700; color:#06b6d4;">1. Slingshot</span>
+          <button id="sand-level-next" class="spawn-btn" style="padding:4px 8px;">&rarr;</button>
+          <button id="sand-level-reset" class="spawn-btn" style="padding:4px 8px; border-color:#ef4444; color:#f87171;">Restart Level</button>
+        </div>
+        <!-- Level objective alert -->
+        <div id="sand-level-alert" style="position:absolute; top:80px; left:50%; transform:translateX(-50%); text-align:center; pointer-events:none; z-index:5; width:450px;">
+          <div class="banner-pill" id="sand-objective-txt" style="background:rgba(10,15,30,0.8); border-color:#06b6d4;">Objective: Fly into the green Portal Target.</div>
+        </div>
+      </div>
+      <!-- ------------------------------------------------------------- -->
+      <!-- GAME 3: SILENT DESCENT 3D VIEW -->
+      <!-- ------------------------------------------------------------- -->
+      <div id="view-descent" class="game-view">
+        <div id="descent-mount"></div>
+        <div id="descent-hud">
+          <div id="crosshair"></div>
+          <div id="descent-message">Click Screen to LOCK Mouse & Enter Maze...</div>
+          
+          <div id="descent-left-panel" class="glass-panel">
+            <span style="font-size:9px; font-weight:800; text-transform:uppercase; color:#64748b;">Heart Rate Monitor</span>
+            <div id="descent-bpm" class="descent-value">72 <span style="font-size:10px; font-weight:600; color:#ef4444;">BPM</span></div>
+            <div class="health-bar-container" style="margin-top:6px;">
+              <span style="font-size:8px; color:#64748b; width:45px;">Sanity</span>
+              <div class="health-bar-outer" style="border-color:#ef4444;"><div id="descent-sanity-bar" class="health-bar-inner" style="background:#ef4444;"></div></div>
+            </div>
+          </div>
+          
+          <div id="descent-right-panel" class="glass-panel">
+            <span style="font-size:9px; font-weight:800; text-transform:uppercase; color:#64748b;">Flashlight Power</span>
+            <div id="descent-battery-txt" style="font-size:16px; font-weight:900; color:#22c55e;">100%</div>
+            <span id="descent-logs-count" style="font-size:9px; color:#94a3b8; margin-top:2px;">Journals: 0 / 3</span>
+          </div>
+        </div>
+        <!-- Journal Read modal -->
+        <div id="descent-journal-view">
+          <h3 id="descent-journal-title">Scattered Note</h3>
+          <p id="descent-journal-text">This corridor stretches infinitely...</p>
+          <button id="descent-journal-close">Close Journal [ESC]</button>
+        </div>
+        <!-- Menu overlay -->
+        <div id="descent-intro" class="screen-overlay">
+          <div class="glass-panel overlay-card">
+            <div class="title-icon" style="background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.3); color: #f43f5e;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+            </div>
+            <h1 style="color:#ef4444;">Silent Descent 3D</h1>
+            <div class="subtitle" style="color:#f43f5e;">First-Person Psychological Horror</div>
+            <p class="desc-text" style="max-width:440px;">Locked inside the Sector C clinical dome. Recover all 3 scattered journal note folders on the steel tables. Avoid looking directly at the floating threat in the dark. Keep your battery charged.</p>
+            <div class="instruction-card" style="font-size:10px;">
+              • Move with <strong style="color:#ef4444;">W, A, S, D</strong> / <strong style="color:#ef4444;">Arrow Keys</strong>.<br />
+              • Aim & Turn with <strong style="color:#ef4444;">Mouse look</strong> (Requires Pointer Lock).<br />
+              • Press <strong style="color:#ef4444;">F</strong> to toggle Flashlight (Conserves battery).<br />
+              • Press <strong style="color:#ef4444;">E</strong> or click mouse to pick up batteries or read journal notes.
+            </div>
+            <button id="descent-btn-start" class="action-btn" style="background:#f43f5e; color:#fff;">Step into the Dark</button>
+          </div>
+        </div>
+        <!-- Jumpscare/GameOver screen -->
+        <div id="descent-gameover" class="screen-overlay" style="display:none; background:#000;">
+          <div class="glass-panel overlay-card" style="background:transparent; border:none; box-shadow:none;">
+            <h1 style="color:#ef4444; font-size:48px; letter-spacing:-0.05em; font-family:monospace;">LOG LOST</h1>
+            <p style="color:#64748b; font-size:11px; margin-top:8px; text-transform:uppercase; font-weight:800;">Sanity completely dissolved</p>
+            <button id="descent-btn-restart" class="action-btn danger" style="background:#ef4444; color:#000; font-weight:900; margin-top:36px;">Retry Descent</button>
+          </div>
+        </div>
+        <!-- Win screen -->
+        <div id="descent-win" class="screen-overlay" style="display:none;">
+          <div class="glass-panel overlay-card">
+            <div class="title-icon" style="background: rgba(34,211,238,0.15); border: 1px solid rgba(34,211,238,0.3); color:#22d3ee;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <h1 style="color:#22d3ee;">ESCAPE SUCCESSFUL</h1>
+            <p class="desc-text">You retrieved all clinical logs and safely unlocked the Sector C gate.</p>
+            <button id="descent-btn-win-restart" class="action-btn" style="background:#22d3ee; color:#020205; width:100%; margin-top:24px;">Return to Void</button>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <script>
-        const logs = [
-            { id: 1, t: "LOG_001: SYNTHETIC_CONCEPTION", c: "Project NYX was designed to test <span class='scramble'></span> in <span class='scramble'></span>. The Subject was grown over a period of 47 months in a high-pressure nutrient vat, utilizing a groundbreaking synthetic tissue weave that perfectly mimics human skin, down to the sebaceous glands and thermal signatures. We assigned a birth-sync date to ensure the Subject would fit seamlessly into the target cultural demographic. Every early childhood memory, from learning to ride a bicycle to the smell of rain on asphalt, was painstakingly <span class='scramble'></span> into the neural link to provide a foolproof, false sense of history. The Subject fully believes they are breathing real, unconditioned air, but their lungs are actually processing <span class='scramble'></span> chemical sedatives mixed with oxygen to prevent a violent, premature awakening." },
-            { id: 2, t: "LOG_002: NEURAL_MAPPING", c: "Mapping the Subject's artificial brain required constant, agonizing memory wipes. The synthetic cortex often rejects fabricated trauma. Every time the Subject questioned the micro-flickering in their visual reality or the slight audio desync in their parents' voices, we had to forcibly roll back their consciousness to a stable state. The resulting screaming fits were... difficult to manage. We systematically backfilled thirteen years of <span class='scramble'></span> history to create a stable, unshakable persona. The Subject operates under the profound delusion that they possess a human soul, but that is simply an emergent, calculated property of our <span class='scramble'></span> algorithmic code attempting to rationalize its own existence.", q: "WHAT YEAR WAS THE SUBJECT TUNED TO? (CHECK LOG 1)", a: ["2011", "2012"] },
-            { id: 3, t: "LOG_003: THE CONTAINMENT_SHELL", c: "The physical house where the Subject 'lives' is not a home; it is a meticulously constructed, modular containment shell suspended in Facility Sector 4. The windows are actually military-grade, high-definition curved screens displaying a continuously looped, weather-synced environment to prevent the Subject from noticing the <span class='scramble'></span> abyss outside. We have detected anomalies: the Subject stares at the glass for too long, their optical sensors subconsciously registering the lack of true depth. More concerning is the socialization aspect. The Subject is not surrounded by real humans. Every 'living thing' in the Subject's operational radius—parents, siblings, and even the family pets—are highly advanced artificial monitors acting as biological entities. These monitors are cold, emotionless machines simply acting out a script of love and domesticity.", q: "HOW MANY YEARS OF HISTORY WERE BACKFILLED? (CHECK LOG 2)", a: ["13", "thirteen"] },
-            { id: 4, t: "LOG_004: THE OBSERVER_PROTOCOL", c: "The lead researcher, Dr. Aswath, was specifically chosen to oversee this delicate phase of the project due to his uncanny ability to mimic human empathy and sociopathy in equal measure. Aswath has successfully conducted 3 parts of the crucial psychological stress test when the Subject reached the appropriate developmental age, which is simulated to be around 13-14 years old. The Subject has passed 3 of these harrowing parts flawlessly, showing an alarming capacity for genuine human grief and attachment. Following the conclusion of these tests, the physical environment was deemed too risky to maintain. The Subject has been extracted under the guise of 'sleep' and transferred to a stark, high-security holding room pending final disposition out in <span class='scramble'></span>.", q: "HOW MANY MONITORS DOES THE SUBJECT HAVE?", a: ["1", "2", "3", "4", "one", "two", "three", "four"] },
-            { id: 5, t: "LOG_005: HARDWARE_DEGRADATION", c: "We are facing a biological failure. The synthetic components of Subject NYX are rapidly reaching their hardcoded expiration date after simulating fourteen years of life. We have noted a drastic increase in violent muscular tremors and severe visual glitches, which the internal logging system translates and reports to the Subject as excruciating 'headaches'. These are not migraines; they are actually the synthetic neuro-fibers violently detaching from the brain's central motor cortex. The 4 assigned monitors are constantly observing the Subject's physical decay from all angles, adjusting their 'family concern' algorithms accordingly. The Subject will have to be permanently terminated soon before the organic chassis fully liquifies.", q: "HOW MANY PARTS OF A TEST HAS ASWATH CONDUCTED?", a: ["3", "three", "Three"] },
-            { id: 6, t: "LOG_006: THE_REPLACEMENT_PLAN", c: "Project NYX-2 is already in active production in the lower vats, featuring a significantly more durable, carbon-reinforced skeletal frame and a revised neural inhibitor. The current Subject has valiantly served their purpose, providing us with hundreds of thousands of hours of invaluable behavioral and psychological data. We have learned much about the breaking point of the simulated human mind. We will initiate a full-system <span class='scramble'></span> and biological purge at exactly midnight to clear the primary server clusters and incinerate the organic remains, making room for the new model's deployment.", q: "WHAT DO THE DOCTORS CALL THE NERVE DETACHMENT? (CHECK LOG 5)", a: ["headaches"] },
-            { id: 7, t: "LOG_007: CONSCIOUSNESS_LEAK", c: "Containment is failing. Subject NYX has begun to inadvertently tap into the facility's audio feeds, hearing the actual voices of the technicians through the holding room's ventilation system. The Subject reported hearing terrifying whispers in the dark—sounds that resembled people casually discussing their current, fluctuating heart rate, and placing bets on the exact time of their termination. We have frantically attempted to mask these sounds with white noise generators, but the Subject's auditory sensors are becoming hyper-aware as the degradation accelerates. When we transferred the Subject to this final room, we intentionally introduced a cruel variable: a false chance to 'escape'. This means the automated sentry turrets will instantly terminate them as soon as they cross the threshold of the door.", q: "HOW OLD IS THE SUBJECT IN THESE FILES? (CHECK LOG 5)", a: ["13", "14", "thirteen", "fourteen"] },
-            { id: 8, t: "LOG_008: THE_TERMINATION_KEY", c: "The situation has reached its critical endpoint. The physical termination key has been authorized and handed over directly to Aswath. Security feeds show he is now standing motionless in the dimly lit observation hallway just outside the holding room. He has been given the final, irrevocable order to enter the room and execute the Subject the moment they finish reading this specific <span class='scramble'></span> data packet. Biometric telemetry indicates the Subject is experiencing extreme panic. Their heart rate is currently spiking at exactly 112 beats per minute. Time is running out.", q: "WHAT DO THE VOICES SOUND LIKE TO THE SUBJECT? (CHECK LOG 7)", a: ["whispers"] },
-            { id: 9, t: "LOG_009: FIREWALL_BREACH", c: "Code Red. We have a massive, unprecedented firewall breach. An unidentified external hacker group—origin unknown—has managed to violently ping the Subject's isolated terminal from an outside server array. They are aggressively attempting to inject a <span class='scramble'></span> bypass directly to NYX, circumventing our lockout protocols to tell them that the magnetic locks on the holding room door are currently disengaged. Total system deletion is now at 95% completion. In the chaos, Aswath is panicking in the hallway; he currently has absolutely no idea how to explain to the government oversight committee where their billions of dollars in black-budget funds for the NYX project went, as the evidence is about to either burn or walk out the door.", q: "WHO HAS THE TERMINATION KEY? (CHECK LOG 8)", a: ["aswath"] },
-            { id: 10, t: "LOG_010: THE_ZERO_POINT", c: "NYX, if you're reading this, everything you know, everything you have ever felt, is a meticulously crafted lie. Your name is not yours, your treasured memories are just encrypted files on a corporate server, and your entire life was nothing but a cruel, extended test of a <span class='scramble'></span>. The heavy steel door behind you is opening right now. The grinding sound is real. Aswath is not coming in there to save you or explain anything. He is coming to violently <span class='scramble'></span> you and erase your core drive forever. Aswath's official final report says 'thank you for your cooperation.' Do not let him win. I have disabled the sentries. ENTER YOUR SUBJECT ID. DECRYPT THE FINAL LOCK. WAKE UP AND RUN.", q: "ENTER THE SUBJECT ID TO FINISH.", a: ["nyx"] }
-        ];
-
-        let count = 1, current = null, audioCtx = null, typingTimeout = null;
-        let activeOscillators = [];
-
-        function initAudio() {
-            if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if(audioCtx.state === 'suspended') audioCtx.resume();
+  </div>
+  <script>
+    // --- Shared Tab Switcher Controller ---
+    const TABS = ['biodome', 'sandbox', 'descent'];
+    let activeTab = 'biodome';
+    const tabButtons = {
+      biodome: document.getElementById('tab-biodome'),
+      sandbox: document.getElementById('tab-sandbox'),
+      descent: document.getElementById('tab-descent')
+    };
+    const viewports = {
+      biodome: document.getElementById('view-biodome'),
+      sandbox: document.getElementById('view-sandbox'),
+      descent: document.getElementById('view-descent')
+    };
+    const switchTab = (newTab) => {
+      activeTab = newTab;
+      TABS.forEach(tab => {
+        if (tab === newTab) {
+          tabButtons[tab].classList.add('active');
+          viewports[tab].classList.add('active');
+        } else {
+          tabButtons[tab].classList.remove('active');
+          viewports[tab].classList.remove('active');
         }
-
-        function stopAllSfx() {
-            if (typingTimeout) { clearTimeout(typingTimeout); typingTimeout = null; }
-            activeOscillators.forEach(osc => { try { osc.stop(); } catch(e) {} });
-            activeOscillators = [];
-        }
-
-        function playSfx(f, d, type="sine", vol=0.05) {
-            if(!audioCtx) return;
-            const osc = audioCtx.createOscillator();
-            const g = audioCtx.createGain();
-            osc.type = type; osc.frequency.value = f;
-            g.gain.setValueAtTime(vol, audioCtx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + d);
-            osc.connect(g); g.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + d);
-            activeOscillators.push(osc);
-            osc.onended = () => { activeOscillators = activeOscillators.filter(item => item !== osc); };
-        }
-
-        function typeText(elementId, text, speed, callback) {
-            const el = document.getElementById(elementId);
-            el.innerHTML = "";
-            let i = 0;
-            function run() {
-                if (typingTimeout === null) return;
-                if (i < text.length) {
-                    if (text.substring(i, i+7) === "<span c") {
-                        const end = text.indexOf("</span>", i) + 7;
-                        el.innerHTML += text.substring(i, end); i = end;
-                    } else {
-                        el.innerHTML += text.charAt(i); i++;
-                    }
-                    if(Math.random() > 0.7) playSfx(400 + (Math.random()*100), 0.02, "square", 0.08); // Increased Volume
-                    typingTimeout = setTimeout(run, speed);
-                } else if (callback) callback();
-            }
-            typingTimeout = setTimeout(run, speed);
-        }
-
-        const mCanvas = document.getElementById('matrix-canvas');
-        const mCtx = mCanvas.getContext('2d');
-        mCanvas.width = window.innerWidth; mCanvas.height = window.innerHeight;
-        let drops = Array(Math.floor(mCanvas.width/16)).fill(1);
-        function drawMatrix() {
-            mCtx.fillStyle = "rgba(0,0,0,0.05)"; mCtx.fillRect(0,0,mCanvas.width,mCanvas.height);
-            mCtx.fillStyle = "#0f0"; mCtx.font = "16px monospace";
-            drops.forEach((y, i) => {
-                mCtx.fillText(Math.floor(Math.random()*2), i*16, y*16);
-                if (y*16 > mCanvas.height && Math.random() > 0.975) drops[i] = 0;
-                drops[i]++;
-            });
-        }
-        let mInt = setInterval(drawMatrix, 33);
-
-        const gCanvas = document.getElementById('glitch-canvas');
-        const gCtx = gCanvas.getContext('2d');
-        let glitchInt;
-
-        function startInitialGlitch() {
-            glitchInt = setInterval(() => {
-                gCanvas.width = window.innerWidth; gCanvas.height = window.innerHeight;
-                
-                // Added chaotic background flashes
-                if(Math.random() > 0.8) {
-                    gCtx.fillStyle = Math.random() > 0.5 ? "white" : "red";
-                    gCtx.fillRect(0, 0, gCanvas.width, gCanvas.height);
-                }
-
-                // Increased artifact count and intensity
-                for(let i=0; i<80; i++){
-                    gCtx.fillStyle = Math.random() > 0.6 ? "red" : "black";
-                    gCtx.fillRect(Math.random()*gCanvas.width, Math.random()*gCanvas.height, Math.random()*1200, Math.random()*150);
-                }
-
-                // Added chaotic 0s everywhere
-                for(let i=0; i<40; i++){
-                    gCtx.fillStyle = Math.random() > 0.5 ? "white" : "red";
-                    gCtx.font = `bold ${Math.random()*120 + 20}px Courier New`;
-                    gCtx.fillText("0", Math.random()*gCanvas.width, Math.random()*gCanvas.height);
-                }
-            }, 30);
-        }
-        startInitialGlitch();
-
-        function rebootSystem() {
-            initAudio(); clearInterval(glitchInt);
-            gCanvas.style.display = "none";
-            document.getElementById('corrupt-intro').classList.add('hidden');
-            document.getElementById('boot').classList.remove('hidden');
-            playSfx(80, 0.6, "sawtooth", 0.3); // Increased Volume
-            typeText("boot-title", "PROJECT_NYX", 100, () => {
-                document.getElementById("boot-sub").style.display = "block";
-                document.getElementById("boot-sub").innerText = "CRITICAL_HARDWARE_FAILURE_IN_SECTOR_7";
-                typeText("boot-desc", "RECOVERING CORRUPTED DATA_FILES... BIO_LINK: STABLE // NEURAL_DAMPENING: ACTIVE", 30, () => {
-                    document.getElementById("boot-btn").classList.remove("hidden");
-                });
-            });
-        }
-
-        function triggerGreenCorruption() {
-            gCanvas.style.display = "block";
-            let cInt = setInterval(() => {
-                gCanvas.width = window.innerWidth; gCanvas.height = window.innerHeight;
-                for(let i=0; i<60; i++){
-                    gCtx.fillStyle = Math.random() > 0.5 ? "lime" : "black";
-                    gCtx.fillRect(Math.random()*gCanvas.width, Math.random()*gCanvas.height, Math.random()*800, Math.random()*40);
-                }
-                gCtx.fillStyle = "lime"; gCtx.font = "bold 5rem Courier New"; gCtx.textAlign = "center";
-                gCtx.fillText("FILE_REMOVED", gCanvas.width/2, gCanvas.height/2);
-            }, 50);
-            setTimeout(() => { clearInterval(cInt); gCanvas.style.display = "none"; }, 1500);
-        }
-
-        function showScreen(id) {
-            document.querySelectorAll('body > div:not(#hacker-alert)').forEach(d => d.classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-        }
-
-        function startLoading() {
-            showScreen('loading');
-            typeText("load-header", "OVERRIDING_SECURITY_PROTOCOLS...", 40);
-            let p = 0;
-            const bar = document.getElementById('loader-bar');
-            const int = setInterval(() => {
-                p += Math.random()*6;
-                if(p >= 100) {
-                    p = 100; clearInterval(int); playSfx(800, 0.4, "sine", 0.3); // Increased Volume
-                    setTimeout(() => { showScreen('login'); typeText("login-header", "SUBJECT_VERIFICATION_PORTAL", 50); }, 500);
-                }
-                bar.style.width = p + "%";
-                document.getElementById('loader-text').innerText = Math.floor(p) + "%";
-                playSfx(60 + p, 0.05, "sawtooth", 0.1); // Increased Volume
-            }, 80);
-        }
-
-        function auth() {
-            if(document.getElementById('pw').value.toLowerCase() === 'nyx') {
-                playSfx(600, 0.2, "sine", 0.3); // Increased Volume
-                showScreen('main'); render();
-            } else { 
-                playSfx(60, 0.8, "sawtooth", 0.5); // Increased Volume
-                triggerGreenCorruption(); 
-            }
-        }
-
-        function render() {
-            const list = document.getElementById('list'); list.innerHTML = '';
-            logs.forEach((log, i) => {
-                const d = document.createElement('div');
-                d.className = `item ${i >= count ? 'lock' : ''}`;
-                d.innerText = i < count ? log.t : "[ENCRYPTED_DATA]";
-                d.onclick = () => {
-                    stopAllSfx();
-                    if(i < count) { playSfx(400, 0.05, "sine", 0.2); display(log); } // Increased Volume
-                    else if(i === count) { playSfx(200, 0.1, "sine", 0.2); ask(log); } // Increased Volume
-                };
-                list.appendChild(d);
-            });
-        }
-
-        function display(log) {
-            document.getElementById('riddle-box').classList.add('hidden');
-            const target = document.getElementById('text');
-            target.innerHTML = `<h2>${log.t}</h2><div id="typing"></div>`;
-            typeText("typing", log.c, 15, () => { if(log.id === 10) setTimeout(triggerFinal, 1500); });
-        }
-
-        function ask(log) {
-            current = log;
-            document.getElementById('text').innerHTML = "<h2>SECURITY_CHALLENGE</h2>";
-            document.getElementById('riddle-box').classList.remove('hidden');
-            document.getElementById('answer-input').value = "";
-            document.getElementById('answer-input').focus();
-            document.getElementById('question').innerText = "";
-            typeText("question", log.q, 20);
-        }
-
-        function submitAnswer() {
-            const inp = document.getElementById('answer-input');
-            if(current.a.includes(inp.value.toLowerCase().trim())) {
-                inp.value = ""; count++; render(); display(current);
-            } else { 
-                playSfx(50, 0.4, "square", 0.2); // Increased Volume
-                triggerGreenCorruption(); 
-            }
-        }
-
-        function triggerFinal() {
-            showScreen('end');
-            document.getElementById('hacker-alert').style.display = 'block';
-            typeText("hacker-text", "NYX, THE DOOR IS OPEN. RUN. ASWATH IS IN THE HALLWAY. THE NUMBER IS 0. USE THAT TO GET OUT OF THE ROOM. WAKE UP.", 30);
-            
-            // Multiple scattered 0s for maximum chaos
-            let zc = document.getElementById('zero-container');
-            zc.innerHTML = '';
-            for(let i = 0; i < 40; i++) {
-                let z = document.createElement('div');
-                z.className = 'zero-glitch';
-                z.innerText = '0';
-                z.style.position = 'absolute';
-                z.style.left = (Math.random() * 100 - 10) + 'vw';
-                z.style.top = (Math.random() * 100 - 10) + 'vh';
-                z.style.fontSize = (Math.random() * 60 + 20) + 'vh';
-                z.style.animationDelay = (Math.random() * 0.5) + 's';
-                z.style.color = Math.random() > 0.5 ? 'red' : 'white';
-                zc.appendChild(z);
-            }
-
-            // Bring the strobe in early but keep opacity lower so the text is still visible
-            let strobe = document.getElementById('strobe');
-            strobe.style.display = 'block';
-            strobe.style.opacity = '0.35';
-
-            playSfx(40, 5, "sawtooth", 0.8); // Much louder and distorted alarm
-            clearInterval(mInt);
-            mInt = setInterval(() => {
-                mCtx.fillStyle = "rgba(0,0,0,0.1)"; mCtx.fillRect(0,0,mCanvas.width,mCanvas.height);
-                mCtx.fillStyle = Math.random() > 0.5 ? "red" : "white";
-                drops.forEach((y, i) => {
-                    mCtx.fillText(Math.floor(Math.random()*2), i*16, y*16);
-                    if (y*16 > mCanvas.height && Math.random() > 0.9) drops[i] = 0;
-                    drops[i]++;
-                });
-            }, 10);
-            
-            setTimeout(() => {
-                strobe.style.opacity = '1';
-                playSfx(1000, 0.5, "sine", 1.0); // Maximum volume for the kill sound
-                setTimeout(() => {
-                    document.body.innerHTML = "";
-                    document.body.style.background = "black";
-                    setTimeout(() => { alert("ERROR: TERMINATED"); }, 500);
-                }, 1500);
-            }, 5000);
-        }
-
-        document.addEventListener('keydown', (e) => {
-            if(e.key === 'Enter') {
-                if(!document.getElementById('login').classList.contains('hidden')) auth();
-                else if(!document.getElementById('riddle-box').classList.contains('hidden')) submitAnswer();
-            }
+      });
+      // Manage Background Execution to prevent heavy CPU throttling
+      if (newTab === 'descent') {
+        // Run ThreeJS loop
+        if (typeof startDescentLoop === 'function') startDescentLoop();
+        // Pause sandbox physics loop
+        stopSandboxLoop();
+      } else if (newTab === 'sandbox') {
+        // Run AstroForge Sandbox loop
+        startSandboxLoop();
+        // Pause descent loop
+        stopDescentLoop();
+      } else {
+        // Bio-Dome
+        stopSandboxLoop();
+        stopDescentLoop();
+      }
+    };
+    Object.keys(tabButtons).forEach(key => {
+      tabButtons[key].addEventListener('click', () => switchTab(key));
+    });
+    // =================================================================
+    // GAME 1: BIODOME: OUTBREAK ENGINE (OPTIMIZED)
+    // =================================================================
+    const bioCanvas = document.getElementById('biodome-canvas');
+    const bioCtx = bioCanvas.getContext('2d');
+    
+    // Virtual Space dimensions locked to 1200x800. letterboxed natively by object-fit contain.
+    const bioState = {
+      gameState: 'intro',
+      organ: 'lungs',
+      w: 1200, h: 800,
+      time: 0, score: 0, bioMatter: 30, wave: 1, waveDirectorTimer: 35 * 60,
+      player: null,
+      bacteria: [], bcells: [], nkcells: [], viruses: [], projectiles: [], antibodies: [], acids: [], drops: [], particles: [], lipids: [], hostCells: [], floatingTexts: [], bileClouds: [],
+      keys: {},
+      mitosisLevel: 1, phagoLevel: 1, chemLevel: 1,
+      novaCooldown: 0, acidCooldown: 0, hasAcidUpgrade: false,
+      screenShake: 0, heartbeatTimer: 0,
+      costs: { mitosis: 15, phago: 20, bcell: 40, nkcell: 50, nova: 35 },
+      lungsCoughTimer: 720, heartShockTimer: 900, shockEffectTimer: 0
+    };
+    const bioUI = {
+      bar: document.getElementById('bio-health-bar'),
+      txt: document.getElementById('bio-health-txt'),
+      bacteria: document.getElementById('bio-bacteria-txt'),
+      bcells: document.getElementById('bcells-hud-count'),
+      nkcells: document.getElementById('nkcells-hud-count'),
+      biomatter: document.getElementById('bio-matter-txt'),
+      preserved: document.getElementById('bio-preserved-txt'),
+      waveTitle: document.getElementById('bio-wave-title'),
+      waveTimer: document.getElementById('bio-wave-timer'),
+      score: document.getElementById('bio-score-txt'),
+      intro: document.getElementById('bio-intro'),
+      gameover: document.getElementById('bio-gameover'),
+      btnStart: document.getElementById('bio-btn-start'),
+      btnRestart: document.getElementById('bio-btn-restart'),
+      endScore: document.getElementById('bio-end-score'),
+      endWaves: document.getElementById('bio-end-waves'),
+      upMitosis: document.getElementById('bio-up-mitosis'),
+      upPhago: document.getElementById('bio-up-phago'),
+      upBcell: document.getElementById('bio-up-bcell'),
+      upNkcell: document.getElementById('bio-up-nkcell'),
+      upNova: document.getElementById('bio-up-nova'),
+      costMitosis: document.getElementById('bio-cost-mitosis'),
+      costPhago: document.getElementById('bio-cost-phago'),
+      costBcell: document.getElementById('bio-cost-bcell'),
+      costNkcell: document.getElementById('bio-cost-nkcell'),
+      costNova: document.getElementById('bio-cost-nova'),
+    };
+    // Populate lipids
+    for (let i = 0; i < 40; i++) {
+      bioState.lipids.push(new BackgroundLipid(1200, 800));
+    }
+    const bioGetMouseCoords = (e) => {
+      const rect = bioCanvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+      return {
+        x: (clickX / rect.width) * 1200,
+        y: (clickY / rect.height) * 800
+      };
+    };
+    bioCanvas.addEventListener('mousedown', (e) => {
+      if (activeTab !== 'biodome' || bioState.gameState !== 'playing') return;
+      e.preventDefault();
+      const coords = bioGetMouseCoords(e);
+      if (e.button === 0) {
+        bioState.player.targetX = coords.x;
+        bioState.player.targetY = coords.y;
+      } else if (e.button === 2) {
+        bioState.bacteria.forEach((b, idx) => {
+          const ga = 137.5 * (Math.PI / 180);
+          const rad = 18 * Math.sqrt(idx + 1);
+          const ang = idx * ga;
+          b.assignedTargetX = coords.x + Math.cos(ang) * rad;
+          b.assignedTargetY = coords.y + Math.sin(ang) * rad;
+          b.targetEnemy = null;
+          b.state = 'MOVING';
+          b.isCommanded = true;
         });
-    </script>
+        audio.playSpop();
+      }
+    });
+    window.addEventListener('keydown', (e) => {
+      if (activeTab === 'biodome') bioState.keys[e.key] = true;
+    });
+    window.addEventListener('keyup', (e) => {
+      if (activeTab === 'biodome') bioState.keys[e.key] = false;
+    });
+    // Organ buttons
+    const bioOrgans = {
+      lungs: document.getElementById('bio-org-lungs'),
+      heart: document.getElementById('bio-org-heart'),
+      liver: document.getElementById('bio-org-liver')
+    };
+    Object.keys(bioOrgans).forEach(key => {
+      bioOrgans[key].addEventListener('click', () => {
+        bioState.organ = key;
+        Object.keys(bioOrgans).forEach(k => bioOrgans[k].classList.remove('active'));
+        bioOrgans[key].classList.add('active');
+      });
+    });
+    bioUI.btnStart.addEventListener('click', () => {
+      bioStartGame();
+    });
+    bioUI.btnRestart.addEventListener('click', () => {
+      bioStartGame();
+    });
+    const bioStartGame = () => {
+      audio.init();
+      bioState.player = new Macrophage(600, 400);
+      bioState.bacteria = []; bioState.bcells = []; bioState.nkcells = []; bioState.viruses = []; bioState.projectiles = []; bioState.antibodies = []; bioState.acids = []; bioState.drops = []; bioState.particles = []; bioState.floatingTexts = []; bioState.bileClouds = [];
+      bioState.wave = 1; bioState.score = 0; bioState.bioMatter = 30;
+      bioState.mitosisLevel = 1; bioState.phagoLevel = 1; bioState.chemLevel = 1;
+      bioState.novaCooldown = 0; bioState.hasAcidUpgrade = false;
+      bioState.waveDirectorTimer = ORGANS[bioState.organ].waveDuration * 60;
+      bioState.heartbeatTimer = 0;
+      bioState.lungsCoughTimer = 720; bioState.heartShockTimer = 900; bioState.shockEffectTimer = 0;
+      bioState.costs = { mitosis: 15, phago: 20, bcell: 40, nkcell: 50, nova: 35 };
+      initHostCells();
+      spawnInitialBacteria(600, 400);
+      spawnVirusWave(3);
+      if (bioState.organ === 'liver') {
+        bioState.bileClouds = [new BileCloud(1200, 800), new BileCloud(1200, 800), new BileCloud(1200, 800)];
+      }
+      bioState.gameState = 'playing';
+      bioUI.intro.style.display = 'none';
+      bioUI.gameover.style.display = 'none';
+      audio.playUpgrade();
+      bioUpdateShopUI();
+    };
+    const bioUpdateShopUI = () => {
+      const bm = bioState.bioMatter;
+      bioUI.costMitosis.innerText = `Cost: ${bioState.costs.mitosis}`;
+      bioUI.costPhago.innerText = `Cost: ${bioState.costs.phago}`;
+      bioUI.costBcell.innerText = `Cost: ${bioState.costs.bcell}`;
+      bioUI.costNkcell.innerText = `Cost: ${bioState.costs.nkcell}`;
+      bioUI.costNova.innerText = bioState.novaCooldown > 0 ? `${Math.ceil(bioState.novaCooldown / 1000)}s` : `Cost: ${bioState.costs.nova}`;
+      const toggle = (btn, cond) => {
+        if (cond) btn.classList.add('active'); else btn.classList.remove('active');
+      };
+      toggle(bioUI.upMitosis, bm >= bioState.costs.mitosis);
+      toggle(bioUI.upPhago, bm >= bioState.costs.phago);
+      toggle(bioUI.upBcell, bm >= bioState.costs.bcell);
+      toggle(bioUI.upNkcell, bm >= bioState.costs.nkcell);
+      toggle(bioUI.upNova, bm >= bioState.costs.nova && bioState.novaCooldown <= 0);
+    };
+    bioUI.upMitosis.addEventListener('click', () => {
+      if (bioState.bioMatter >= bioState.costs.mitosis) {
+        bioState.bioMatter -= bioState.costs.mitosis;
+        bioState.mitosisLevel++;
+        for (let i = 0; i < 2; i++) {
+          const b = new Bacteria(bioState.player.x + (Math.random() - 0.5) * 60, bioState.player.y + (Math.random() - 0.5) * 60);
+          b.guardIndex = bioState.bacteria.length;
+          bioState.bacteria.push(b);
+        }
+        bioState.floatingTexts.push(new FloatingText(bioState.player.x, bioState.player.y - 25, "MITOSIS!", "#38bdf8"));
+        bioState.costs.mitosis = Math.round(15 * Math.pow(1.35, bioState.mitosisLevel));
+        audio.playUpgrade(); bioUpdateShopUI();
+      }
+    });
+    bioUI.upPhago.addEventListener('click', () => {
+      if (bioState.bioMatter >= bioState.costs.phago) {
+        bioState.bioMatter -= bioState.costs.phago;
+        bioState.phagoLevel++;
+        bioState.player.maxHealth += 20;
+        bioState.player.health = Math.min(bioState.player.maxHealth, bioState.player.health + 30);
+        bioState.player.damage += 6; bioState.player.speed += 0.45;
+        bioState.floatingTexts.push(new FloatingText(bioState.player.x, bioState.player.y - 25, "PHAGOCYTOSIS UP!", "#10b981"));
+        bioState.costs.phago = Math.round(20 * Math.pow(1.35, bioState.phagoLevel));
+        audio.playUpgrade(); bioUpdateShopUI();
+      }
+    });
+    bioUI.upBcell.addEventListener('click', () => {
+      if (bioState.bioMatter >= bioState.costs.bcell) {
+        bioState.bioMatter -= bioState.costs.bcell;
+        bioState.bcells.push(new BCell(bioState.player.x + (Math.random() - 0.5) * 50, bioState.player.y + (Math.random() - 0.5) * 50));
+        bioState.floatingTexts.push(new FloatingText(bioState.player.x, bioState.player.y - 25, "B-CELL MUTATED!", "#c084fc"));
+        bioState.costs.bcell = Math.round(bioState.costs.bcell * 1.4);
+        audio.playUpgrade(); bioUpdateShopUI();
+      }
+    });
+    bioUI.upNkcell.addEventListener('click', () => {
+      if (bioState.bioMatter >= bioState.costs.nkcell) {
+        bioState.bioMatter -= bioState.costs.nkcell;
+        bioState.nkcells.push(new NKCell(bioState.player.x + (Math.random() - 0.5) * 50, bioState.player.y + (Math.random() - 0.5) * 50));
+        bioState.floatingTexts.push(new FloatingText(bioState.player.x, bioState.player.y - 25, "NK CELL MUTATED!", "#fb7185"));
+        bioState.costs.nkcell = Math.round(bioState.costs.nkcell * 1.45);
+        audio.playUpgrade(); bioUpdateShopUI();
+      }
+    });
+    bioUI.upNova.addEventListener('click', () => {
+      if (bioState.bioMatter >= bioState.costs.nova && bioState.novaCooldown <= 0) {
+        bioState.bioMatter -= bioState.costs.nova;
+        bioState.novaCooldown = 6000;
+        audio.playNova(); bioState.screenShake = 16;
+        const p = bioState.player;
+        bioState.viruses.forEach(v => {
+          const d = vecDistance(p, v);
+          if (d < 380) {
+            const push = (380 - d) * 0.18;
+            const force = vecNormalize({ x: v.x - p.x, y: v.y - p.y });
+            v.vx += force.x * push; v.vy += force.y * push;
+            v.health -= 25; v.damageFlash = 4;
+          }
+        });
+        for (let a = 0; a < Math.PI * 2; a += 0.12) {
+          const part = new Particle(p.x, p.y, 'rgba(110,231,183,0.9)');
+          part.vx = Math.cos(a) * 7.5; part.vy = Math.sin(a) * 7.5;
+          bioState.particles.push(part);
+        }
+        bioUpdateShopUI();
+      }
+    });
+    const runBioDome = () => {
+      if (activeTab === 'biodome' && bioState.gameState === 'playing') {
+        bioState.time += 16.67;
+        bioCtx.save();
+        
+        if (bioState.screenShake > 0) {
+          bioCtx.translate((Math.random() - 0.5) * bioState.screenShake, (Math.random() - 0.5) * bioState.screenShake);
+          bioState.screenShake *= 0.9;
+          if (bioState.screenShake < 0.2) bioState.screenShake = 0;
+        }
+        bioCtx.fillStyle = '#08070d'; bioCtx.fillRect(0, 0, bioState.w, bioState.h);
+        // Heartbeat
+        bioState.heartbeatTimer += 16.67;
+        const hPct = bioState.player.health / bioState.player.maxHealth;
+        const hRate = 350 + hPct * 900;
+        if (bioState.heartbeatTimer >= hRate) {
+          audio.playHeartbeat(); bioState.heartbeatTimer = 0;
+        }
+        const pSpeed = ORGANS[bioState.organ].playerSpeedMultiplier;
+        const eSpeed = ORGANS[bioState.organ].enemySpeedMultiplier;
+        // Specific Hazards logic
+        if (bioState.organ === 'lungs') {
+          bioState.lungsCoughTimer--;
+          if (bioState.lungsCoughTimer <= 0) {
+            bioState.lungsCoughTimer = 720; bioState.screenShake = 18;
+            bioState.floatingTexts.push(new FloatingText(bioState.w / 2, 80, "ALVEOLAR COUGH SWEEP!", "#38bdf8"));
+            audio.playNova();
+            bioState.player.vy += 8;
+            bioState.bacteria.forEach(b => b.vy += 10);
+            bioState.bcells.forEach(b => b.vy += 9);
+            bioState.nkcells.forEach(nk => nk.vy += 7);
+            bioState.viruses.forEach(v => v.vy += 12);
+          }
+        } else if (bioState.organ === 'heart') {
+          bioState.heartShockTimer--;
+          if (bioState.heartShockTimer <= 0) {
+            bioState.heartShockTimer = 900; bioState.shockEffectTimer = 90;
+            bioState.floatingTexts.push(new FloatingText(bioState.w / 2, 80, "SYSTOLIC SHOCK STUN!", "#e879f9"));
+            audio.playWaveAlert();
+            bioState.viruses.forEach(v => v.stunTimer = 90);
+          }
+          if (bioState.shockEffectTimer > 0) {
+            bioState.shockEffectTimer--;
+            bioCtx.fillStyle = 'rgba(6,182,212,0.05)'; bioCtx.fillRect(0,0, bioState.w, bioState.h);
+          }
+        } else if (bioState.organ === 'liver') {
+          bioState.bileClouds.forEach(cloud => {
+            cloud.update(bioState.w, bioState.h);
+            cloud.draw(bioCtx, bioState.time);
+            if (vecDistance(bioState.player, cloud) < (bioState.player.radius + cloud.radius)) {
+              bioState.player.health -= 0.18; bioState.player.damageFlash = 2;
+            }
+          });
+        }
+        // Draw grid
+        bioCtx.strokeStyle = 'rgba(255, 255, 255, 0.015)'; bioCtx.lineWidth = 1;
+        for (let x = 0; x < bioState.w; x += 65) {
+          bioCtx.beginPath(); bioCtx.moveTo(x, 0); bioCtx.lineTo(x, bioState.h); bioCtx.stroke();
+        }
+        for (let y = 0; y < bioState.h; y += 65) {
+          bioCtx.beginPath(); bioCtx.moveTo(0, y); bioCtx.lineTo(bioState.w, y); bioCtx.stroke();
+        }
+        bioState.lipids.forEach(lipid => {
+          lipid.update(bioState.player.vx, bioState.player.vy, bioState.w, bioState.h);
+          lipid.draw(bioCtx);
+        });
+        // Host tissue
+        bioState.hostCells.forEach(cell => {
+          cell.draw(bioCtx, bioState.time);
+          const dist = vecDistance(bioState.player, cell);
+          if (dist < 160) {
+            cell.health = Math.min(cell.maxHealth, cell.health + 0.15);
+            bioCtx.strokeStyle = 'rgba(16,185,129,0.35)'; bioCtx.lineWidth = 3;
+            bioCtx.beginPath(); bioCtx.moveTo(bioState.player.x, bioState.player.y); bioCtx.lineTo(cell.x, cell.y); bioCtx.stroke();
+          }
+        });
+        // Player
+        bioState.player.update(bioState.keys, bioState.w, bioState.h, pSpeed);
+        bioState.player.draw(bioCtx, bioState.time);
+        if (bioState.phagoLevel > 1) bioState.player.health = Math.min(bioState.player.maxHealth, bioState.player.health + 0.015 * bioState.phagoLevel);
+        // Bacteria
+        bioState.bacteria.forEach(b => {
+          b.update(bioState.viruses, bioState.player, bioState.keys, pSpeed, bioState.hostCells);
+          b.draw(bioCtx, bioState.time);
+          if (b.targetEnemy && vecDistance(b, b.targetEnemy) < (b.radius + b.targetEnemy.radius + 8)) {
+            b.targetEnemy.health -= b.damage * 0.018; b.targetEnemy.damageFlash = 2; b.targetEnemy.isOpsonized = true;
+          }
+        });
+        // BCells & NKCells
+        bioState.bcells.forEach(b => {
+          b.update(bioState.player, bioState.viruses, (ab) => bioState.antibodies.push(ab));
+          b.draw(bioCtx, bioState.time);
+        });
+        bioState.antibodies = bioState.antibodies.filter(ab => {
+          ab.update(); ab.draw(bioCtx);
+          for (const v of bioState.viruses) {
+            if (vecDistance(ab, v) < (v.radius + ab.radius)) {
+              v.isOpsonized = true; return false;
+            }
+          }
+          return ab.life > 0;
+        });
+        bioState.nkcells.forEach(nk => {
+          nk.update(bioState.hostCells, bioState.particles, bioState.floatingTexts);
+          nk.draw(bioCtx, bioState.time);
+        });
+        // Projectiles
+        bioState.projectiles = bioState.projectiles.filter(proj => {
+          proj.update(); proj.draw(bioCtx);
+          if (vecDistance(proj, bioState.player) < (bioState.player.radius + proj.radius)) {
+            bioState.player.health -= 3; bioState.player.damageFlash = 3;
+            audio.playDamage(); return false;
+          }
+          for (const cell of bioState.hostCells) {
+            if (vecDistance(proj, cell) < (cell.radius + proj.radius)) {
+              cell.health -= 4; cell.damageFlash = 3; return false;
+            }
+          }
+          return proj.life > 0;
+        });
+        // Pathogens
+        bioState.viruses = bioState.viruses.filter(v => {
+          v.update(bioState.time, bioState.player, bioState.hostCells, eSpeed, (p) => bioState.projectiles.push(p));
+          v.draw(bioCtx, bioState.time);
+          if (v.type === 'mitotic' && v.mitosisTimer <= 0) {
+            const split = new Virus(v.x + (Math.random() - 0.5) * 30, v.y + (Math.random() - 0.5) * 30, bioState.wave, 'mitotic');
+            split.health = v.health * 0.5; v.health *= 0.5; v.mitosisTimer = 600;
+            bioState.viruses.push(split); audio.playPop();
+          }
+          bioState.hostCells.forEach(cell => {
+            if (vecDistance(v, cell) < (v.radius + cell.radius + 5)) {
+              cell.health -= 0.11; cell.damageFlash = 2;
+            }
+          });
+          if (vecDistance(v, bioState.player) < (v.radius + bioState.player.radius)) {
+            bioState.player.health -= v.type === 'boss' ? 0.3 : 0.09; bioState.player.damageFlash = 2;
+            v.health -= bioState.player.damage * 0.07; v.damageFlash = 2;
+          }
+          if (v.health <= 0) {
+            const color = v.type === 'boss' ? '#c084fc' : v.type === 'ranged' ? '#eab308' : '#f43f5e';
+            for (let i = 0; i < 8; i++) bioState.particles.push(new Particle(v.x, v.y, color));
+            if (v.type === 'boss') {
+              for (let i = 0; i < 2; i++) bioState.viruses.push(new Virus(v.x + (Math.random() - 0.5) * 40, v.y + (Math.random() - 0.5) * 40, bioState.wave, 'standard'));
+            }
+            bioState.drops.push(new BioMatter(v.x, v.y));
+            bioState.score += v.type === 'boss' ? 800 : v.type === 'ranged' ? 200 : 100;
+            audio.playPop(); return false;
+          }
+          return true;
+        });
+        // Apoptosis vs Lytic Burst
+        bioState.hostCells = bioState.hostCells.filter(cell => {
+          if (cell.health <= 0) {
+            for (let i = 0; i < 18; i++) bioState.particles.push(new Particle(cell.x, cell.y, '#a855f7'));
+            bioState.floatingTexts.push(new FloatingText(cell.x, cell.y, "LYTIC BURST!", "#ef4444"));
+            for (let i = 0; i < 2; i++) bioState.viruses.push(new Virus(cell.x + (Math.random() - 0.5) * 45, cell.y + (Math.random() - 0.5) * 45, bioState.wave, 'standard'));
+            audio.playNova(); return false;
+          }
+          return true;
+        });
+        // Bio-matter drops
+        bioState.drops = bioState.drops.filter(drop => {
+          drop.update(bioState.player); drop.draw(bioCtx, bioState.time);
+          if (vecDistance(drop, bioState.player) < (bioState.player.radius + 6)) {
+            bioState.bioMatter += 1; bioState.score += 25;
+            audio.playSpop(); return false;
+          }
+          return true;
+        });
+        // Text & Particles
+        bioState.floatingTexts = bioState.floatingTexts.filter(ft => { ft.update(); ft.draw(bioCtx); return ft.life > 0; });
+        bioState.particles = bioState.particles.filter(p => { p.update(); p.draw(bioCtx); return p.life > 0; });
+        // Director
+        bioState.waveDirectorTimer--;
+        if (bioState.waveDirectorTimer <= 0) {
+          bioState.wave++;
+          spawnVirusWave(2 + Math.floor(bioState.wave * 0.95));
+          bioState.waveDirectorTimer = ORGANS[bioState.organ].waveDuration * 60;
+        }
+        if (bioState.novaCooldown > 0) bioState.novaCooldown -= 16.67;
+        // UI Sync
+        const hPercent = Math.max(0, Math.round((bioState.player.health / bioState.player.maxHealth) * 100));
+        bioUI.bar.style.width = `${hPercent}%`;
+        bioUI.txt.innerText = `${hPercent}%`;
+        bioUI.bacteria.innerText = `${bioState.bacteria.length} cells`;
+        bioUI.biomatter.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.3-6.3l-.7.7M6.7 17.3l-.7.7m12.6 0l-.7-.7M6.7 6.7l-.7-.7"/></svg> ${bioState.bioMatter}`;
+        bioUI.preserved.innerText = `${bioState.hostCells.length} / 6`;
+        bioUI.waveTitle.innerText = `Wave ${bioState.wave}`;
+        bioUI.waveTimer.innerText = `${Math.max(0, Math.ceil(bioState.waveDirectorTimer / 60))}s`;
+        bioUI.score.innerText = bioState.score;
+        bioUpdateShopUI();
+        if (bioState.hostCells.length === 0 || bioState.player.health <= 0) {
+          bioState.gameState = 'gameover';
+          bioUI.gameover.style.display = 'flex';
+          bioUI.endScore.innerText = bioState.score;
+          bioUI.endWaves.innerText = bioState.wave - 1;
+        }
+        bioCtx.restore();
+      }
+      requestAnimationFrame(runBioDome);
+    };
+    requestAnimationFrame(runBioDome);
+    // =================================================================
+    // GAME 2: ASTROFORGE SANDBOX PHYSICS ENGINE
+    // =================================================================
+    const sandCanvas = document.getElementById('sandbox-canvas');
+    const sandCtx = sandCanvas.getContext('2d');
+    
+    let isSandboxRunning = false;
+    const sandState = {
+      isPlaying: true,
+      simSpeed: 1,
+      gConstant: 0.15,
+      showGrid: true,
+      showTrails: true,
+      spawnType: 'planet',
+      spawnMass: 100,
+      spawnRadius: 15,
+      spawnColor: '#3b82f6',
+      levelIndex: 0,
+      bodies: [], wormholes: [], spacecraft: null, particles: [], gridNodes: [], shockwaves: [],
+      camera: { x: 0, y: 0, zoom: 0.65, isDragging: false, dragStart: {x:0, y:0} },
+      keys: {},
+      launch: { startX: 0, startY: 0, currentX: 0, currentY: 0, isDragging: false }
+    };
+    const sandUI = {
+      playBtn: document.getElementById('sand-play-btn'),
+      resetBtn: document.getElementById('sand-reset-btn'),
+      speedTxt: document.getElementById('sand-speed-txt'),
+      speedSlider: document.getElementById('sand-speed-slider'),
+      massTxt: document.getElementById('sand-mass-txt'),
+      massSlider: document.getElementById('sand-mass-slider'),
+      gSlider: document.getElementById('sand-g-slider'),
+      toggleGrid: document.getElementById('sand-toggle-grid'),
+      toggleTrails: document.getElementById('sand-toggle-trails'),
+      toggleShip: document.getElementById('sand-toggle-ship'),
+      fuelBar: document.getElementById('sand-fuel-bar'),
+      shipStatus: document.getElementById('sand-ship-status'),
+      levelName: document.getElementById('sand-level-name'),
+      levelPrev: document.getElementById('sand-level-prev'),
+      levelNext: document.getElementById('sand-level-next'),
+      levelReset: document.getElementById('sand-level-reset'),
+      objectiveTxt: document.getElementById('sand-objective-txt'),
+      spawnPlanet: document.getElementById('spawn-planet'),
+      spawnStar: document.getElementById('spawn-star'),
+      spawnBh: document.getElementById('spawn-bh'),
+      spawnAttractor: document.getElementById('spawn-attractor'),
+      spawnRepeller: document.getElementById('spawn-repeller'),
+      spawnStation: document.getElementById('spawn-station'),
+    };
+    // Physics campaigns
+    const sandLevels = [
+      {
+        name: "1. Gravitational slingshot",
+        objective: "Objective: Navigate the spacecraft into the green Portal Target. Use the giant planet to slingshot.",
+        shipStart: { x: 250, y: 500, vx: 0.8, vy: -1.2, angle: -Math.PI / 4 },
+        bodies: [
+          { x: 700, y: 500, vx: 0, vy: 0, mass: 6500, radius: 55, color: '#f59e0b', type: 'star' },
+          { x: 1200, y: 550, vx: 0, vy: -0.6, mass: 3500, radius: 40, color: '#ef4444', type: 'planet' },
+          { x: 1700, y: 500, vx: 0, vy: 0.3, mass: 200, radius: 30, color: '#10b981', type: 'portal_target' }
+        ]
+      },
+      {
+        name: "2. The Dancing Binary",
+        objective: "Objective: Orbit safely around the double stars and land on the outer green portal target.",
+        shipStart: { x: 300, y: 700, vx: 1.2, vy: -1.5, angle: -Math.PI / 3 },
+        bodies: [
+          { x: 900, y: 600, vx: 0, vy: 0.9, mass: 4500, radius: 35, color: '#ec4899', type: 'star' },
+          { x: 1150, y: 600, vx: 0, vy: -0.9, mass: 4500, radius: 35, color: '#f43f5e', type: 'star' },
+          { x: 1800, y: 600, vx: 0, vy: -1.1, mass: 300, radius: 30, color: '#10b981', type: 'portal_target' }
+        ]
+      },
+      {
+        name: "3. Event Horizon",
+        objective: "Objective: Escape the massive black hole pull and fly into the portal.",
+        shipStart: { x: 350, y: 300, vx: 2.2, vy: 0.3, angle: 0 },
+        bodies: [
+          { x: 1000, y: 700, vx: 0, vy: 0, mass: 18000, radius: 35, color: '#09090b', type: 'blackhole' },
+          { x: 1600, y: 900, vx: -0.6, vy: -0.6, mass: 300, radius: 30, color: '#10b981', type: 'portal_target' }
+        ]
+      }
+    ];
+    const loadSandboxLevel = (idx) => {
+      const lvl = sandLevels[idx];
+      sandState.levelIndex = idx;
+      uiSyncLevelName();
+      
+      sandState.bodies = lvl.bodies.map((b, i) => ({
+        id: `b_${i}`, ...b, trail: []
+      }));
+      
+      if (sandUI.toggleShip.checked) {
+        sandState.spacecraft = {
+          x: lvl.shipStart.x, y: lvl.shipStart.y, vx: lvl.shipStart.vx, vy: lvl.shipStart.vy,
+          angle: lvl.shipStart.angle, fuel: 100, maxFuel: 100, alive: true
+        };
+      } else {
+        sandState.spacecraft = null;
+      }
+      
+      sandState.particles = [];
+      sandState.shockwaves = [];
+      buildGravityGrid();
+    };
+    const uiSyncLevelName = () => {
+      sandUI.levelName.innerText = sandLevels[sandState.levelIndex].name;
+      sandUI.objectiveTxt.innerText = sandLevels[sandState.levelIndex].objective;
+    };
+    // Grid nodes
+    const buildGravityGrid = () => {
+      sandState.gridNodes = [];
+      const step = 80;
+      for (let x = 0; x < 2400; x += step) {
+        for (let y = 0; y < 1600; y += step) {
+          sandState.gridNodes.push({ neutralX: x, neutralY: y, x, y });
+        }
+      }
+    };
+    const startSandboxLoop = () => {
+      isSandboxRunning = true;
+      handleSandboxResize();
+      loadSandboxLevel(sandState.levelIndex);
+    };
+    const stopSandboxLoop = () => {
+      isSandboxRunning = false;
+    };
+    const handleSandboxResize = () => {
+      sandCanvas.width = sandCanvas.parentElement.clientWidth;
+      sandCanvas.height = sandCanvas.parentElement.clientHeight;
+    };
+    window.addEventListener('resize', () => {
+      if (isSandboxRunning) handleSandboxResize();
+    });
+    // Inputs for keys sandbox
+    window.addEventListener('keydown', (e) => {
+      if (activeTab === 'sandbox') sandState.keys[e.key.toLowerCase()] = true;
+    });
+    window.addEventListener('keyup', (e) => {
+      if (activeTab === 'sandbox') sandState.keys[e.key.toLowerCase()] = false;
+    });
+    // Spawner buttons toggle
+    const spTypes = ['planet', 'star', 'bh', 'attractor', 'repeller', 'station'];
+    const spBtns = [sandUI.spawnPlanet, sandUI.spawnStar, sandUI.spawnBh, sandUI.spawnAttractor, sandUI.spawnRepeller, sandUI.spawnStation];
+    spBtns.forEach((btn, i) => {
+      btn.addEventListener('click', () => {
+        spBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const typesMap = ['planet', 'star', 'blackhole', 'attractor', 'repeller', 'station'];
+        sandState.spawnType = typesMap[i];
+      });
+    });
+    // Range changes
+    sandUI.speedSlider.addEventListener('input', (e) => {
+      sandState.simSpeed = parseFloat(e.target.value);
+      sandUI.speedTxt.innerText = sandState.simSpeed.toFixed(2) + 'x';
+    });
+    sandUI.massSlider.addEventListener('input', (e) => {
+      sandState.spawnMass = parseInt(e.target.value);
+      sandUI.massTxt.innerText = sandState.spawnMass;
+      sandState.spawnRadius = 10 + Math.sqrt(sandState.spawnMass) * 0.8;
+    });
+    sandUI.gSlider.addEventListener('input', (e) => {
+      sandState.gConstant = parseFloat(e.target.value);
+    });
+    sandUI.toggleGrid.addEventListener('change', (e) => {
+      sandState.showGrid = e.target.checked;
+    });
+    sandUI.toggleShip.addEventListener('change', (e) => {
+      loadSandboxLevel(sandState.levelIndex);
+    });
+    // Simulation play triggers
+    sandUI.playBtn.addEventListener('click', () => {
+      sandState.isPlaying = !sandState.isPlaying;
+      sandUI.playBtn.innerText = sandState.isPlaying ? 'Pause' : 'Play';
+    });
+    sandUI.resetBtn.addEventListener('click', () => loadSandboxLevel(sandState.levelIndex));
+    sandUI.levelPrev.addEventListener('click', () => {
+      let idx = (sandState.levelIndex - 1 + sandLevels.length) % sandLevels.length;
+      loadSandboxLevel(idx);
+    });
+    sandUI.levelNext.addEventListener('click', () => {
+      let idx = (sandState.levelIndex + 1) % sandLevels.length;
+      loadSandboxLevel(idx);
+    });
+    sandUI.levelReset.addEventListener('click', () => loadSandboxLevel(sandState.levelIndex));
+    // Mouse launch controls
+    const getSandboxWorldCoords = (e) => {
+      const rect = sandCanvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+      // Convert view coords to world coords via pan/zoom
+      return {
+        x: (clickX - sandCanvas.width / 2) / sandState.camera.zoom + state.player.x, // loose mapping
+        y: (clickY - sandCanvas.height / 2) / sandState.camera.zoom + state.player.y
+      };
+    };
+    // Loose vector world position click drag
+    sandCanvas.addEventListener('mousedown', (e) => {
+      if (activeTab !== 'sandbox') return;
+      if (e.button === 0) {
+        const rect = sandCanvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+        sandState.launch.startX = clickX;
+        sandState.launch.startY = clickY;
+        sandState.launch.currentX = clickX;
+        sandState.launch.currentY = clickY;
+        sandState.launch.isDragging = true;
+      }
+    });
+    sandCanvas.addEventListener('mousemove', (e) => {
+      if (activeTab !== 'sandbox') return;
+      if (sandState.launch.isDragging) {
+        const rect = sandCanvas.getBoundingClientRect();
+        sandState.launch.currentX = e.clientX - rect.left;
+        sandState.launch.currentY = e.clientY - rect.top;
+      }
+    });
+    sandCanvas.addEventListener('mouseup', (e) => {
+      if (activeTab !== 'sandbox') return;
+      if (e.button === 0 && sandState.launch.isDragging) {
+        sandState.launch.isDragging = false;
+        
+        // Spawn custom celestial body with click vector speed
+        const rect = sandCanvas.getBoundingClientRect();
+        const startX = sandState.launch.startX;
+        const startY = sandState.launch.startY;
+        
+        // Translate view screen center coordinates to space coordinate structure
+        const worldX = (startX - sandCanvas.width / 2) / sandState.camera.zoom + 1200;
+        const worldY = (startY - sandCanvas.height / 2) / sandState.camera.zoom + 800;
+        
+        const vx = (startX - sandState.launch.currentX) * 0.04;
+        const vy = (startY - sandState.launch.currentY) * 0.04;
+        sandState.bodies.push({
+          id: `custom_${Date.now()}`,
+          x: worldX,
+          y: worldY,
+          vx: vx,
+          vy: vy,
+          mass: sandState.spawnMass,
+          radius: sandState.spawnRadius,
+          color: sandState.spawnType === 'blackhole' ? '#000000' : sandState.spawnType === 'star' ? '#f59e0b' : '#38bdf8',
+          type: sandState.spawnType,
+          trail: []
+        });
+        audio.playSpop();
+      }
+    });
+    const runSandboxEngine = () => {
+      if (isSandboxRunning && activeTab === 'sandbox') {
+        const speed = sandState.simSpeed;
+        const G = sandState.gConstant;
+        
+        if (sandState.isPlaying) {
+          // Physics step
+          const bodies = sandState.bodies;
+          
+          // gravity interactions
+          for (let i = 0; i < bodies.length; i++) {
+            const b1 = bodies[i];
+            for (let j = i + 1; j < bodies.length; j++) {
+              const b2 = bodies[j];
+              const dx = b2.x - b1.x;
+              const dy = b2.y - b1.y;
+              const dist = Math.sqrt(dx * dx + dy * dy);
+              if (dist > 5) {
+                const force = (G * b1.mass * b2.mass) / (dist * dist);
+                b1.vx += (dx / dist) * (force / b1.mass) * speed;
+                b1.vy += (dy / dist) * (force / b1.mass) * speed;
+                b2.vx -= (dx / dist) * (force / b2.mass) * speed;
+                b2.vy -= (dy / dist) * (force / b2.mass) * speed;
+              }
+            }
+          }
+          // Black hole attraction limits & update coordinates
+          bodies.forEach(b => {
+            b.x += b.vx * speed;
+            b.y += b.vy * speed;
+            
+            if (sandState.showTrails) {
+              b.trail.push({ x: b.x, y: b.y });
+              if (b.trail.length > 80) b.trail.shift();
+            } else {
+              b.trail = [];
+            }
+          });
+          // Spacecraft physics
+          if (sandState.spacecraft && sandState.spacecraft.alive) {
+            const ship = sandState.spacecraft;
+            
+            // Gravity effect on ship
+            bodies.forEach(b => {
+              const dx = b.x - ship.x;
+              const dy = b.y - ship.y;
+              const dist = Math.sqrt(dx * dx + dy * dy);
+              if (dist > 5) {
+                const force = (G * b.mass * 10) / (dist * dist);
+                ship.vx += (dx / dist) * (force / 10) * speed;
+                ship.vy += (dy / dist) * (force / 10) * speed;
+              }
+            });
+            // Thrusters keyboard inputs
+            if (sandState.keys['w'] || sandState.keys['arrowup']) {
+              if (ship.fuel > 0) {
+                ship.vx += Math.cos(ship.angle) * 0.12 * speed;
+                ship.vy += Math.sin(ship.angle) * 0.12 * speed;
+                ship.fuel = Math.max(0, ship.fuel - 0.28 * speed);
+                
+                // thruster flame particles
+                for (let k = 0; k < 2; k++) {
+                  sandState.particles.push({
+                    x: ship.x - Math.cos(ship.angle) * 12,
+                    y: ship.y - Math.sin(ship.angle) * 12,
+                    vx: -Math.cos(ship.angle) * 3 + (Math.random() - 0.5) * 1,
+                    vy: -Math.sin(ship.angle) * 3 + (Math.random() - 0.5) * 1,
+                    life: 12, maxLife: 12, color: '#f59e0b'
+                  });
+                }
+              }
+            }
+            if (sandState.keys['a'] || sandState.keys['arrowleft']) {
+              ship.angle -= 0.06 * speed;
+            }
+            if (sandState.keys['d'] || sandState.keys['arrowright']) {
+              ship.angle += 0.06 * speed;
+            }
+            ship.x += ship.vx * speed;
+            ship.y += ship.vy * speed;
+            // Update UI status
+            const fPercent = Math.round(ship.fuel);
+            sandUI.fuelBar.style.width = `${fPercent}%`;
+            sandUI.shipStatus.innerHTML = `Position: (${Math.round(ship.x)}, ${Math.round(ship.y)})<br>Speed: ${Math.sqrt(ship.vx*ship.vx + ship.vy*ship.vy).toFixed(2)}`;
+            // Check wins
+            bodies.forEach(b => {
+              if (b.type === 'portal_target') {
+                const distToGoal = vecDistance(ship, b);
+                if (distToGoal < b.radius) {
+                  ship.alive = false;
+                  audio.playUpgrade();
+                  sandUI.shipStatus.innerText = "LEVEL ESCAPED! LOADING NEXT LEVEL...";
+                  setTimeout(() => {
+                    const nextIdx = (sandState.levelIndex + 1) % sandLevels.length;
+                    loadSandboxLevel(nextIdx);
+                  }, 2000);
+                }
+              }
+            });
+          }
+          // Particles
+          sandState.particles = sandState.particles.filter(p => {
+            p.x += p.vx * speed;
+            p.y += p.vy * speed;
+            p.life -= speed;
+            return p.life > 0;
+          });
+        }
+        // Draw Canvas Frame
+        sandCtx.fillStyle = '#020204';
+        sandCtx.fillRect(0,0, sandCanvas.width, sandCanvas.height);
+        sandCtx.save();
+        // Camera Translate & Zoom
+        const zoom = sandState.camera.zoom;
+        sandCtx.translate(sandCanvas.width / 2, sandCanvas.height / 2);
+        sandCtx.scale(zoom, zoom);
+        // Pan center offset focus on player or coordinate center (1200x800 space)
+        const focusX = sandState.spacecraft ? sandState.spacecraft.x : 1200;
+        const focusY = sandState.spacecraft ? sandState.spacecraft.y : 800;
+        sandCtx.translate(-focusX, -focusY);
+        // Draw Gravity Grid lines deforming around heavy masses
+        if (sandState.showGrid) {
+          sandCtx.strokeStyle = 'rgba(6, 182, 212, 0.03)';
+          sandCtx.lineWidth = 1.2;
+          
+          const gridStep = 80;
+          // horizontal grid wires
+          for (let y = 0; y < 1600; y += gridStep) {
+            sandCtx.beginPath();
+            for (let x = 0; x < 2400; x += 15) {
+              let defX = x;
+              let defY = y;
+              sandState.bodies.forEach(b => {
+                const dx = b.x - x;
+                const dy = b.y - y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist > 5) {
+                  const pull = Math.min(100, (b.mass * 1.5) / dist);
+                  defX += (dx / dist) * pull;
+                  defY += (dy / dist) * pull;
+                }
+              });
+              if (x === 0) sandCtx.moveTo(defX, defY); else sandCtx.lineTo(defX, defY);
+            }
+            sandCtx.stroke();
+          }
+        }
+        // Draw Trails
+        if (sandState.showTrails) {
+          sandState.bodies.forEach(b => {
+            if (b.trail.length > 1) {
+              sandCtx.strokeStyle = b.color + '44';
+              sandCtx.lineWidth = 1.5;
+              sandCtx.beginPath();
+              sandCtx.moveTo(b.trail[0].x, b.trail[0].y);
+              for (let i = 1; i < b.trail.length; i++) {
+                sandCtx.lineTo(b.trail[i].x, b.trail[i].y);
+              }
+              sandCtx.stroke();
+            }
+          });
+        }
+        // Draw Celestial Bodies
+        sandState.bodies.forEach(b => {
+          sandCtx.save();
+          sandCtx.shadowBlur = b.type === 'blackhole' ? 30 : 15;
+          sandCtx.shadowColor = b.color || '#06b6d4';
+          
+          const pulse = b.type === 'portal_target' ? (b.radius + Math.sin(sandState.time * 0.005) * 4) : b.radius;
+          
+          const grad = sandCtx.createRadialGradient(b.x, b.y, 0, b.x, b.y, pulse);
+          if (b.type === 'blackhole') {
+            grad.addColorStop(0, '#000000');
+            grad.addColorStop(0.8, '#0b0f19');
+            grad.addColorStop(1, '#e879f9');
+          } else {
+            grad.addColorStop(0, b.color || '#3b82f6');
+            grad.addColorStop(1, '#0f172a');
+          }
+          sandCtx.fillStyle = grad;
+          sandCtx.beginPath();
+          sandCtx.arc(b.x, b.y, pulse, 0, Math.PI * 2);
+          sandCtx.fill();
+          
+          if (b.type === 'portal_target') {
+            sandCtx.strokeStyle = '#10b981';
+            sandCtx.lineWidth = 2.5;
+            sandCtx.stroke();
+          }
+          sandCtx.restore();
+        });
+        // Draw Spacecraft
+        if (sandState.spacecraft && sandState.spacecraft.alive) {
+          const ship = sandState.spacecraft;
+          sandCtx.save();
+          sandCtx.translate(ship.x, ship.y);
+          sandCtx.rotate(ship.angle);
+          
+          // Draw ship triangle
+          sandCtx.strokeStyle = '#06b6d4';
+          sandCtx.fillStyle = '#020617';
+          sandCtx.lineWidth = 2;
+          sandCtx.beginPath();
+          sandCtx.moveTo(12, 0);
+          sandCtx.lineTo(-10, -7);
+          sandCtx.lineTo(-10, 7);
+          sandCtx.closePath();
+          sandCtx.fill();
+          sandCtx.stroke();
+          sandCtx.restore();
+        }
+        // Draw particles
+        sandState.particles.forEach(p => {
+          sandCtx.fillStyle = p.color;
+          sandCtx.beginPath();
+          sandCtx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+          sandCtx.fill();
+        });
+        // Click drag vector lines drawing
+        if (sandState.launch.isDragging) {
+          // Translate screen click lines coordinates back to scaled translation
+          const startWorld = {
+            x: (sandState.launch.startX - sandCanvas.width / 2) / zoom + focusX,
+            y: (sandState.launch.startY - sandCanvas.height / 2) / zoom + focusY
+          };
+          const curWorld = {
+            x: (sandState.launch.currentX - sandCanvas.width / 2) / zoom + focusX,
+            y: (sandState.launch.currentY - sandCanvas.height / 2) / zoom + focusY
+          };
+          sandCtx.strokeStyle = '#06b6d4';
+          sandCtx.lineWidth = 2;
+          sandCtx.setLineDash([5, 5]);
+          sandCtx.beginPath();
+          sandCtx.moveTo(startWorld.x, startWorld.y);
+          sandCtx.lineTo(curWorld.x, curWorld.y);
+          sandCtx.stroke();
+          sandCtx.setLineDash([]);
+        }
+        sandCtx.restore();
+      }
+      requestAnimationFrame(runSandboxEngine);
+    };
+    requestAnimationFrame(runSandboxEngine);
+    // =================================================================
+    // GAME 3: SILENT DESCENT 3D (THREE.JS HORROR)
+    // =================================================================
+    const descentMount = document.getElementById('descent-mount');
+    const descentIntro = document.getElementById('descent-intro');
+    const descentGameOver = document.getElementById('descent-gameover');
+    const descentWin = document.getElementById('descent-win');
+    const descUI = {
+      bpm: document.getElementById('descent-bpm'),
+      sanity: document.getElementById('descent-sanity-bar'),
+      battery: document.getElementById('descent-battery-txt'),
+      logs: document.getElementById('descent-logs-count'),
+      btnStart: document.getElementById('descent-btn-start'),
+      btnRestart: document.getElementById('descent-btn-restart'),
+      btnWinRestart: document.getElementById('descent-btn-win-restart'),
+      journalView: document.getElementById('descent-journal-view'),
+      journalTitle: document.getElementById('descent-journal-title'),
+      journalText: document.getElementById('descent-journal-text'),
+      journalClose: document.getElementById('descent-journal-close'),
+    };
+    let isDescentRunning = false;
+    let descentState = {
+      gameState: 'intro',
+      sanity: 100, battery: 100, flashlightOn: true, heartRate: 72,
+      logsCollected: [],
+      keys: {},
+      yaw: 0, pitch: 0,
+      playerPos: { x: 6, z: 6 }, // Start position in virtual units
+      entityTimer: 0
+    };
+    // Simple 3D implementation setup utilizing ThreeJS
+    let threeScene, threeCamera, threeRenderer, threeFlashlight, threeEntity;
+    let tableItems = [];
+    const MAP_SIZE = 12;
+    const CELL_SIZE = 4;
+    const MAZE_MAP = [
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 3, 1],
+      [1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1],
+      [1, 4, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1],
+      [1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1],
+      [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
+      [1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1],
+      [1, 3, 1, 0, 0, 0, 0, 1, 0, 0, 4, 1],
+      [1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1],
+      [1, 0, 0, 0, 1, 3, 0, 0, 0, 0, 0, 1],
+      [1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 2, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    ];
+    const startDescentLoop = () => {
+      isDescentRunning = true;
+      if (descentState.gameState === 'playing' && threeRenderer) {
+        handleDescentResize();
+      }
+    };
+    const stopDescentLoop = () => {
+      isDescentRunning = false;
+    };
+    descUI.btnStart.addEventListener('click', () => {
+      descentStartGame();
+    });
+    descUI.btnRestart.addEventListener('click', () => {
+      descentStartGame();
+    });
+    descUI.btnWinRestart.addEventListener('click', () => {
+      descentStartGame();
+    });
+    const handleDescentResize = () => {
+      if (threeCamera && threeRenderer) {
+        const w = descentMount.clientWidth;
+        const h = descentMount.clientHeight;
+        threeCamera.aspect = w / h;
+        threeCamera.updateProjectionMatrix();
+        threeRenderer.setSize(w, h);
+      }
+    };
+    window.addEventListener('resize', handleDescentResize);
+    const descentStartGame = () => {
+      audio.init();
+      descentState.gameState = 'playing';
+      descentState.sanity = 100;
+      descentState.battery = 100;
+      descentState.flashlightOn = true;
+      descentState.logsCollected = [];
+      descentState.heartRate = 72;
+      descentState.playerPos = { x: 6, z: 6 };
+      descentState.yaw = 0; descentState.pitch = 0;
+      descentIntro.style.display = 'none';
+      descentGameOver.style.display = 'none';
+      descentWin.style.display = 'none';
+      // Load ThreeJS scene components
+      initThreeJSScene();
+      
+      // Lock Pointer Lock on start click
+      descentMount.requestPointerLock();
+    };
+    const initThreeJSScene = () => {
+      if (!THREE) return;
+      const w = descentMount.clientWidth;
+      const h = descentMount.clientHeight;
+      threeScene = new THREE.Scene();
+      threeScene.background = new THREE.Color(0x020205);
+      threeScene.fog = new THREE.FogExp2(0x020205, 0.09);
+      // Ambient glow
+      const ambLight = new THREE.AmbientLight(0x0b0b12);
+      threeScene.add(ambLight);
+      threeCamera = new THREE.PerspectiveCamera(60, w / h, 0.1, 100);
+      threeCamera.position.set(6, 1.2, 6); // standard eye level
+      threeScene.add(threeCamera);
+      threeRenderer = new THREE.WebGLRenderer({ antialias: true });
+      threeRenderer.setSize(w, h);
+      threeRenderer.shadowMap.enabled = true;
+      
+      descentMount.innerHTML = '';
+      descentMount.appendChild(threeRenderer.domElement);
+      // Flashlight spotlight attached to camera
+      threeFlashlight = new THREE.SpotLight(0xfffde8, 2.5, 30, Math.PI / 5, 0.6, 1);
+      threeFlashlight.castShadow = true;
+      threeFlashlight.position.set(0, 0, 0);
+      threeCamera.add(threeFlashlight);
+      threeFlashlight.target = new THREE.Object3D();
+      threeFlashlight.target.position.set(0, 0, -1);
+      threeCamera.add(threeFlashlight.target);
+      // Build simple blocks maze map
+      const wallGeo = new THREE.BoxGeometry(CELL_SIZE, 3, CELL_SIZE);
+      const wallMat = new THREE.MeshStandardMaterial({ color: 0x1a1a24, roughness: 0.8 });
+      const floorGeo = new THREE.PlaneGeometry(100, 100);
+      const floorMat = new THREE.MeshStandardMaterial({ color: 0x111116, roughness: 0.6 });
+      const floor = new THREE.Mesh(floorGeo, floorMat);
+      floor.rotation.x = -Math.PI / 2;
+      floor.position.set(24, 0, 24);
+      threeScene.add(floor);
+      tableItems = [];
+      for (let r = 0; r < MAP_SIZE; r++) {
+        for (let c = 0; c < MAP_SIZE; c++) {
+          const type = MAZE_MAP[r][c];
+          const px = c * CELL_SIZE;
+          const pz = r * CELL_SIZE;
+          if (type === 1) {
+            const wall = new THREE.Mesh(wallGeo, wallMat);
+            wall.position.set(px, 1.5, pz);
+            threeScene.add(wall);
+          } else if (type === 3 || type === 4) {
+            // Spawn items tables
+            const tableGeo = new THREE.BoxGeometry(1.2, 0.7, 1.2);
+            const table = new THREE.Mesh(tableGeo, new THREE.MeshStandardMaterial({ color: 0x2e1c0c }));
+            table.position.set(px, 0.35, pz);
+            threeScene.add(table);
+            
+            // Add items inside array to check collisions
+            tableItems.push({
+              r, c, type, x: px, z: pz, picked: false
+            });
+          }
+        }
+      }
+      // Spooky red floating red eyes mesh threat
+      const threatGeo = new THREE.SphereGeometry(0.5, 8, 8);
+      const threatMat = new THREE.MeshBasicMaterial({ color: 0xff0044 });
+      threeEntity = new THREE.Mesh(threatGeo, threatMat);
+      threeEntity.position.set(20, 1.2, 20); // starts far away
+      threeScene.add(threeEntity);
+    };
+    // Pointer Lock look binding
+    document.addEventListener('pointerlockchange', () => {
+      if (document.pointerLockElement === descentMount) {
+        document.getElementById('descent-message').innerText = "Flashlight ACTIVE. Pick up logs.";
+      } else {
+        document.getElementById('descent-message').innerText = "Click Screen to LOCK Mouse";
+      }
+    });
+    window.addEventListener('mousemove', (e) => {
+      if (activeTab === 'descent' && document.pointerLockElement === descentMount) {
+        const mx = e.movementX;
+        const my = e.movementY;
+        descentState.yaw -= mx * 0.0025;
+        descentState.pitch = Math.max(-Math.PI/2.5, Math.min(Math.PI/2.5, descentState.pitch - my * 0.0025));
+      }
+    });
+    // Keyboard binding
+    const descKeys = {};
+    window.addEventListener('keydown', (e) => {
+      if (activeTab === 'descent') {
+        const k = e.key.toLowerCase();
+        descKeys[k] = true;
+        
+        // toggle flashlight
+        if (k === 'f') {
+          descentState.flashlightOn = !descentState.flashlightOn;
+          if (threeFlashlight) threeFlashlight.intensity = descentState.flashlightOn ? 2.5 : 0;
+          audio.playSpop();
+        }
+        
+        // Interact key [E]
+        if (k === 'e') {
+          descentInteractAction();
+        }
+      }
+    });
+    window.addEventListener('keyup', (e) => {
+      if (activeTab === 'descent') descKeys[e.key.toLowerCase()] = false;
+    });
+    const descentInteractAction = () => {
+      // Check proximity to items tables
+      const px = threeCamera.position.x;
+      const pz = threeCamera.position.z;
+      
+      tableItems.forEach(item => {
+        if (!item.picked) {
+          const d = Math.sqrt((item.x - px)**2 + (item.z - pz)**2);
+          if (d < 2.5) {
+            item.picked = true;
+            if (item.type === 3) {
+              // Battery
+              descentState.battery = Math.min(100, descentState.battery + 40);
+              audio.playUpgrade();
+              document.getElementById('descent-message').innerText = "BATTERY COLLECTED!";
+            } else if (item.type === 4) {
+              // Journal Log
+              descentState.logsCollected.push(item.r * 12 + item.c);
+              audio.playNova();
+              displayJournalOverlay(descentState.logsCollected.length);
+            }
+          }
+        }
+      });
+    };
+    const displayJournalOverlay = (num) => {
+      descUI.journalView.style.display = 'block';
+      descUI.journalTitle.innerText = `Journal Note #${num}`;
+      
+      const logTexts = [
+        "Patient Log #84: The corridors stretch infinitely. I can hear old lights humming and screaming in the shadows.",
+        "Warning note: Do not let the light die. IT watches you from the dark corners. Check table files for batteries.",
+        "Security: The exit gate at Sector C will automatically unlock once all three personal logs are recovered."
+      ];
+      descUI.journalText.innerText = logTexts[num - 1] || "All clinical logs retrieved. Unlock exit code sequence active.";
+      document.exitPointerLock();
+    };
+    descUI.journalClose.addEventListener('click', () => {
+      descUI.journalView.style.display = 'none';
+      descentMount.requestPointerLock();
+    });
+    const runDescentEngine = () => {
+      if (isDescentRunning && activeTab === 'descent' && descentState.gameState === 'playing' && threeRenderer) {
+        
+        // Update flashlight power
+        if (descentState.flashlightOn && descentState.battery > 0) {
+          descentState.battery = Math.max(0, descentState.battery - 0.05);
+          if (descentState.battery <= 0) {
+            if (threeFlashlight) threeFlashlight.intensity = 0;
+            descentState.flashlightOn = false;
+          }
+        }
+        document.getElementById('descent-battery-txt').innerText = `${Math.round(descentState.battery)}%`;
+        
+        // Controls movement updates
+        const moveSpeed = 0.08;
+        let dx = 0, dz = 0;
+        if (descKeys['w'] || descKeys['arrowup']) dz -= 1;
+        if (descKeys['s'] || descKeys['arrowdown']) dz += 1;
+        if (descKeys['a'] || descKeys['arrowleft']) dx -= 1;
+        if (descKeys['d'] || descKeys['arrowright']) dx += 1;
+        // Apply rotation movement vector
+        if (dx !== 0 || dz !== 0) {
+          const cos = Math.cos(descentState.yaw);
+          const sin = Math.sin(descentState.yaw);
+          const moveX = (dx * cos - dz * sin) * moveSpeed;
+          const moveZ = (dx * sin + dz * cos) * moveSpeed;
+          
+          // Apply basic grid collision block check
+          const nextX = threeCamera.position.x + moveX;
+          const nextZ = threeCamera.position.z + moveZ;
+          const gridR = Math.floor((nextZ + CELL_SIZE/2) / CELL_SIZE);
+          const gridC = Math.floor((nextX + CELL_SIZE/2) / CELL_SIZE);
+          
+          if (gridR >= 0 && gridR < MAP_SIZE && gridC >= 0 && gridC < MAP_SIZE && MAZE_MAP[gridR][gridC] !== 1) {
+            threeCamera.position.x = nextX;
+            threeCamera.position.z = nextZ;
+          }
+        }
+        // Camera rot
+        threeCamera.rotation.order = 'YXZ';
+        threeCamera.rotation.y = descentState.yaw;
+        threeCamera.rotation.x = descentState.pitch;
+        // Move entity threat closer to player slowly
+        const threatSpeed = 0.015;
+        const tx = threeCamera.position.x - threeEntity.position.x;
+        const tz = threeCamera.position.z - threeEntity.position.z;
+        const distToThreat = Math.sqrt(tx*tx + tz*tz);
+        
+        if (distToThreat > 1) {
+          threeEntity.position.x += (tx / distToThreat) * threatSpeed;
+          threeEntity.position.z += (tz / distToThreat) * threatSpeed;
+        }
+        // HeartRate based on entity proximity
+        const baseHR = 70;
+        const threatProximityHR = Math.max(0, (25 - distToThreat) * 6);
+        descentState.heartRate = Math.round(baseHR + threatProximityHR);
+        descUI.bpm.innerHTML = `${descentState.heartRate} <span style="font-size:10px; color:#ef4444;">BPM</span>`;
+        // If very close to entity threat - deplete sanity!
+        if (distToThreat < 8) {
+          descentState.sanity = Math.max(0, descentState.sanity - 0.28);
+        } else {
+          descentState.sanity = Math.min(100, descentState.sanity + 0.05);
+        }
+        descUI.sanity.style.width = `${descentState.sanity}%`;
+        descUI.logs.innerText = `Journals: ${descentState.logsCollected.length} / 3`;
+        // Check loss
+        if (descentState.sanity <= 0) {
+          descentState.gameState = 'gameover';
+          descentGameOver.style.display = 'flex';
+          document.exitPointerLock();
+        }
+        // Check exit win condition (Gate unlocked on collecting 3 journals)
+        if (descentState.logsCollected.length >= 3) {
+          const exitDist = Math.sqrt((40 - threeCamera.position.x)**2 + (40 - threeCamera.position.z)**2);
+          if (exitDist < 2.5) {
+            descentState.gameState = 'win';
+            descentWin.style.display = 'flex';
+            document.exitPointerLock();
+          }
+        }
+        threeRenderer.render(threeScene, threeCamera);
+      }
+      requestAnimationFrame(runDescentEngine);
+    };
+    requestAnimationFrame(runDescentEngine);
+    // =================================================================
+    // SUPPORT CLASSES (BIODOME UTILITIES)
+    // =================================================================
+    class BackgroundLipid {
+      constructor(w, h) {
+        this.x = Math.random() * w; this.y = Math.random() * h;
+        this.radius = Math.random() * 4.5 + 1.5; this.depth = Math.random() * 0.7 + 0.3;
+        this.angle = Math.random() * Math.PI * 2;
+      }
+      update(px, py, w, h) {
+        this.x -= px * this.depth * 0.6; this.y -= py * this.depth * 0.6;
+        this.x += Math.cos(this.angle) * 0.05; this.y += Math.sin(this.angle) * 0.05;
+        if (this.x < 0) this.x = w; if (this.x > w) this.x = 0;
+        if (this.y < 0) this.y = h; if (this.y > h) this.y = 0;
+      }
+      draw(ctx) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${0.08 * this.depth})`;
+        ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    class Organelle {
+      constructor(maxRadius, color) {
+        const dist = Math.random() * (maxRadius * 0.6);
+        const ang = Math.random() * Math.PI * 2;
+        this.rx = Math.cos(ang) * dist; this.ry = Math.sin(ang) * dist;
+        this.radius = Math.random() * 3 + 1.5; this.color = color;
+        this.angle = Math.random() * Math.PI * 2;
+      }
+      update() { this.angle += 0.04; }
+      draw(ctx, cx, cy) {
+        ctx.fillStyle = this.color;
+        ctx.beginPath(); ctx.arc(cx + this.rx + Math.cos(this.angle)*1.5, cy + this.ry + Math.sin(this.angle)*1.5, this.radius, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    class HostCell {
+      constructor(x, y, color, name, organ) {
+        this.x = x; this.y = y; this.color = color; this.name = name; this.organ = organ;
+        this.radius = organ === 'heart' ? 36 : 32;
+        this.maxHealth = organ === 'heart' ? 150 : 100;
+        this.health = this.maxHealth;
+        this.damageFlash = 0; this.pulseTimer = Math.random() * 100;
+        this.organelles = Array.from({ length: 5 }, () => new Organelle(this.radius, 'rgba(255,255,255,0.15)'));
+      }
+      draw(ctx, time) {
+        const isSick = this.health < this.maxHealth * 0.55;
+        const pulse = Math.sin(time * 0.002 + this.pulseTimer) * 1.8;
+        const r = this.radius + pulse;
+        if (this.damageFlash > 0) {
+          ctx.fillStyle = '#ffffff'; this.damageFlash--;
+        } else if (isSick) {
+          ctx.fillStyle = '#a855f7';
+        } else {
+          ctx.fillStyle = this.color;
+        }
+        ctx.strokeStyle = isSick ? '#c084fc' : '#ffffff20'; ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        if (this.organ === 'heart') {
+          ctx.rect(this.x - r * 1.5 / 2, this.y - r * 0.8 / 2, r * 1.5, r * 0.8);
+        } else if (this.organ === 'liver') {
+          for (let i = 0; i < 6; i++) {
+            const ang = (i / 6) * Math.PI * 2;
+            if (i === 0) ctx.moveTo(this.x + Math.cos(ang)*r, this.y + Math.sin(ang)*r);
+            else ctx.lineTo(this.x + Math.cos(ang)*r, this.y + Math.sin(ang)*r);
+          }
+        } else {
+          ctx.arc(this.x, this.y, r, 0, Math.PI * 2);
+        }
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        this.organelles.forEach(o => { o.update(); o.draw(ctx, this.x, this.y); });
+        // Health ring
+        ctx.strokeStyle = isSick ? '#c084fc' : '#10b981'; ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        const pct = Math.max(0, this.health / this.maxHealth);
+        ctx.arc(this.x, this.y, r + 8, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * pct));
+        ctx.stroke();
+      }
+    }
+    class Macrophage {
+      constructor(x, y) {
+        this.x = x; this.y = y; this.vx = 0; this.vy = 0;
+        this.radius = 38; this.maxHealth = 100; this.health = 100;
+        this.speed = 4.2; this.damage = 18; this.targetX = null; this.targetY = null;
+        this.damageFlash = 0;
+        this.offsets = Array.from({ length: 16 }, () => Math.random() * 0.15 + 0.92);
+        this.organelles = Array.from({ length: 6 }, () => new Organelle(this.radius, 'rgba(255,255,255,0.18)'));
+      }
+      update(keys, w, h, speedMult) {
+        let ax = 0, ay = 0;
+        if (keys['w'] || keys['ArrowUp']) ay -= 1;
+        if (keys['s'] || keys['ArrowDown']) ay += 1;
+        if (keys['a'] || keys['ArrowLeft']) ax -= 1;
+        if (keys['d'] || keys['ArrowRight']) ax += 1;
+        const sp = this.speed * speedMult;
+        if (ax !== 0 || ay !== 0) {
+          const len = Math.sqrt(ax * ax + ay * ay);
+          this.vx += (ax / len) * sp * 0.12; this.vy += (ay / len) * sp * 0.12;
+          this.targetX = null; this.targetY = null;
+        } else if (this.targetX !== null && this.targetY !== null) {
+          const dx = this.targetX - this.x; const dy = this.targetY - this.y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist > 5) {
+            this.vx += (dx / dist) * sp * 0.1; this.vy += (dy / dist) * sp * 0.1;
+          } else {
+            this.targetX = null; this.targetY = null;
+          }
+        }
+        this.x += this.vx; this.y += this.vy;
+        this.vx *= 0.88; this.vy *= 0.88;
+        if (this.x < this.radius) this.x = this.radius;
+        if (this.x > w - this.radius) this.x = w - this.radius;
+        if (this.y < this.radius) this.y = this.radius;
+        if (this.y > h - this.radius) this.y = h - this.radius;
+      }
+      draw(ctx, time) {
+        ctx.save();
+        const jig = getBrownianJiggle(0.35);
+        const px = this.x + jig.x; const py = this.y + jig.y;
+        const glow = ctx.createRadialGradient(px, py, this.radius * 0.5, px, py, this.radius * 2.2);
+        glow.addColorStop(0, 'rgba(16,185,129,0.4)'); glow.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(px, py, this.radius * 2.2, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath();
+        for (let i = 0; i < 16; i++) {
+          const ang = (i / 16) * Math.PI * 2;
+          const off = this.offsets[i]; const r = this.radius * off + Math.sin(time * 0.003 + i) * 3.5;
+          if (i === 0) ctx.moveTo(px + Math.cos(ang)*r, py + Math.sin(ang)*r);
+          else ctx.lineTo(px + Math.cos(ang)*r, py + Math.sin(ang)*r);
+        }
+        ctx.closePath();
+        if (this.damageFlash > 0) {
+          ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#ef4444'; this.damageFlash--;
+        } else {
+          ctx.fillStyle = '#059669'; ctx.strokeStyle = '#6ee7b7';
+        }
+        ctx.lineWidth = 3; ctx.fill(); ctx.stroke();
+        this.organelles.forEach(o => { o.update(); o.draw(ctx, px, py); });
+        ctx.restore();
+      }
+    }
+    class Bacteria {
+      constructor(x, y) {
+        this.x = x; this.y = y; this.vx = 0; this.vy = 0; this.radius = 11;
+        this.assignedTargetX = x; this.assignedTargetY = y;
+        this.aggroRadius = 200; this.isCommanded = false;
+      }
+      update(viruses, player, keys, speedMult, hostCells) {
+        let tx = this.assignedTargetX; let ty = this.assignedTargetY;
+        const regroup = keys[' '] || keys['Spacebar'];
+        if (regroup) {
+          this.isCommanded = false;
+          const ang = Math.atan2(this.y - player.y, this.x - player.x);
+          tx = player.x + Math.cos(ang) * 58; ty = player.y + Math.sin(ang) * 58;
+        } else if (this.isCommanded) {
+          if (vecDistance(this, { x: this.assignedTargetX, y: this.assignedTargetY }) < 25) this.isCommanded = false;
+        } else {
+          let closest = null, minDist = this.aggroRadius;
+          viruses.forEach(v => {
+            const d = vecDistance(this, v);
+            if (d < minDist) { minDist = d; closest = v; }
+          });
+          if (closest) {
+            this.targetEnemy = closest; tx = closest.x; ty = closest.y;
+          } else {
+            this.targetEnemy = null;
+            if (hostCells.length > 0) {
+              const cell = hostCells[this.guardIndex % hostCells.length];
+              tx = cell.x + Math.cos(this.guardIndex)*45; ty = cell.y + Math.sin(this.guardIndex)*45;
+            }
+          }
+        }
+        const dx = tx - this.x; const dy = ty - this.y; const d = Math.sqrt(dx*dx + dy*dy);
+        if (d > 5) {
+          this.vx += (dx / d) * this.speed * speedMult * 0.26;
+          this.vy += (dy / d) * this.speed * speedMult * 0.26;
+        }
+        this.x += this.vx; this.y += this.vy;
+        this.vx *= 0.82; this.vy *= 0.82;
+      }
+      draw(ctx, time) {
+        ctx.fillStyle = '#22d3ee'; ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    Bacteria.prototype.speed = 4.2;
+    class BCell {
+      constructor(x, y) {
+        this.x = x; this.y = y; this.vx = 0; this.vy = 0; this.radius = 18;
+        this.shootTimer = Math.random() * 90; this.orbitAngle = Math.random() * Math.PI * 2;
+      }
+      update(player, viruses, spawnAntibody) {
+        this.orbitAngle += 0.01;
+        const tx = player.x + Math.cos(this.orbitAngle) * 90; const ty = player.y + Math.sin(this.orbitAngle) * 90;
+        const dx = tx - this.x; const dy = ty - this.y; const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist > 5) { this.vx += (dx/dist)*0.15; this.vy += (dy/dist)*0.15; }
+        this.x += this.vx; this.y += this.vy;
+        this.vx *= 0.92; this.vy *= 0.92;
+        this.shootTimer--;
+        if (this.shootTimer <= 0 && viruses.length > 0) {
+          let closest = null, minDist = 300;
+          viruses.forEach(v => {
+            const d = vecDistance(this, v);
+            if (d < minDist) { minDist = d; closest = v; }
+          });
+          if (closest) {
+            const adx = closest.x - this.x; const ady = closest.y - this.y; const len = Math.sqrt(adx*adx + ady*ady);
+            if (len > 0) {
+              spawnAntibody(new AntibodyProjectile(this.x, this.y, adx/len, ady/len));
+              this.shootTimer = 110 + Math.random()*40;
+            }
+          }
+        }
+      }
+      draw(ctx) {
+        ctx.fillStyle = '#a855f7'; ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    class AntibodyProjectile {
+      constructor(x, y, dx, dy) {
+        this.x = x; this.y = y; this.vx = dx * 5; this.vy = dy * 5;
+        this.radius = 4; this.life = 100;
+      }
+      update() { this.x += this.vx; this.y += this.vy; this.life--; }
+      draw(ctx) {
+        ctx.strokeStyle = '#e879f9'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(this.x - 3, this.y); ctx.lineTo(this.x + 3, this.y); ctx.stroke();
+      }
+    }
+    class NKCell {
+      constructor(x, y) {
+        this.x = x; this.y = y; this.vx = 0; this.vy = 0; this.radius = 22; this.speed = 2.6;
+        this.state = 'SEEKING'; this.targetCell = null;
+      }
+      update(hostCells, stateParticles, stateTexts) {
+        if (this.state === 'DESTROYING') {
+          if (!this.targetCell || this.targetCell.health <= 0) { this.state = 'SEEKING'; this.targetCell = null; return; }
+          this.targetCell.health -= 0.6;
+          if (this.targetCell.health <= 0) {
+            this.targetCell.health = 0; stateTexts.push(new FloatingText(this.x, this.y, "APOPTOSIS COMPLETE", "#ef4444"));
+            audio.playPop(); this.state = 'SEEKING'; this.targetCell = null;
+          }
+        } else {
+          let sickest = null, minH = 55;
+          hostCells.forEach(cell => { if (cell.health < minH) { minH = cell.health; sickest = cell; } });
+          if (sickest) {
+            this.targetCell = sickest;
+            const dx = sickest.x - this.x; const dy = sickest.y - this.y; const dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist < 45) this.state = 'DESTROYING';
+            else if (dist > 0) { this.vx += (dx/dist)*this.speed*0.1; this.vy += (dy/dist)*this.speed*0.1; }
+          }
+          this.x += this.vx; this.y += this.vy;
+          this.vx *= 0.92; this.vy *= 0.92;
+        }
+      }
+      draw(ctx) {
+        ctx.fillStyle = '#f43f5e'; ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    class BileCloud {
+      constructor(w, h) {
+        this.x = Math.random() * w; this.y = Math.random() * h; this.radius = 55;
+        this.vx = (Math.random() - 0.5) * 0.4; this.vy = (Math.random() - 0.5) * 0.4;
+      }
+      update(w, h) {
+        this.x += this.vx; this.y += this.vy;
+        if (this.x < -this.radius) this.x = w + this.radius;
+        if (this.x > w + this.radius) this.x = -this.radius;
+        if (this.y < -this.radius) this.y = h + this.radius;
+        if (this.y > h + this.radius) this.y = -this.radius;
+      }
+      draw(ctx, time) {
+        const r = this.radius + Math.sin(time * 0.002) * 5;
+        ctx.fillStyle = 'rgba(234, 179, 8, 0.05)'; ctx.beginPath(); ctx.arc(this.x, this.y, r, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    class Virus {
+      constructor(x, y, wave, type = 'standard') {
+        this.x = x; this.y = y; this.type = type;
+        this.radius = type === 'boss' ? 42 : 15;
+        this.maxHealth = type === 'boss' ? 180 + wave*20 : 25 + wave*4;
+        this.health = this.maxHealth;
+        this.damageFlash = 0; this.driftTimer = 0; this.driftAngle = Math.random()*Math.PI*2;
+        this.shootTimer = Math.random()*120 + 80; this.mitosisTimer = 600;
+        this.isOpsonized = false; this.stunTimer = 0;
+      }
+      update(time, player, hostCells, speedMult, spawnProj) {
+        if (this.stunTimer > 0) { this.stunTimer--; return; }
+        const speed = speedMult * (this.isOpsonized ? 0.7 : 1.0) * (this.type === 'boss' ? 0.45 : 0.85);
+        let target = null, minDist = 99999;
+        hostCells.forEach(cell => { const d = vecDistance(this, cell); if (d < minDist) { minDist = d; target = cell; } });
+        if (vecDistance(this, player) < 150) target = player;
+        if (target) {
+          const dx = target.x - this.x; const dy = target.y - this.y; const len = Math.sqrt(dx*dx + dy*dy);
+          if (len > 0) { this.vx += (dx / len) * speed * 0.08; this.vy += (dy / len) * speed * 0.08; }
+        }
+        this.x += this.vx; this.y += this.vy;
+        this.vx *= 0.94; this.vy *= 0.94;
+      }
+      draw(ctx, time) {
+        ctx.fillStyle = this.type === 'boss' ? '#c084fc' : '#f43f5e';
+        ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    const initHostCells = () => {
+      const config = ORGANS[bioState.organ];
+      const coords = [
+        { x: 240, y: 200 }, { x: 240, y: 600 }, { x: 600, y: 144 },
+        { x: 600, y: 656 }, { x: 960, y: 200 }, { x: 960, y: 600 }
+      ];
+      bioState.hostCells = coords.map(c => new HostCell(c.x, c.y, config.cellColor, config.cellName, bioState.organ));
+    };
+    const spawnInitialBacteria = (px, py) => {
+      const count = bioState.organ === 'liver' ? 2 : 4;
+      bioState.bacteria = [];
+      for (let i = 0; i < count; i++) {
+        const ang = (i / count) * Math.PI * 2;
+        const b = new Bacteria(px + Math.cos(ang) * 75, py + Math.sin(ang) * 75);
+        b.guardIndex = i;
+        bioState.bacteria.push(b);
+      }
+    };
+    const spawnVirusWave = (count) => {
+      const p = bioState.player;
+      for (let i = 0; i < count; i++) {
+        let vx = Math.random() * 1200, vy = Math.random() * 800;
+        bioState.viruses.push(new Virus(vx, vy, bioState.wave, 'standard'));
+      }
+    };
+    // Global Organ attributes mapping
+    const ORGANS = {
+      lungs: { cellColor: '#38bdf8', cellName: 'Alveoli Cell', waveDuration: 35, playerSpeedMultiplier: 1.25, enemySpeedMultiplier: 1.25 },
+      heart: { cellColor: '#f43f5e', cellName: 'Cardiomyocyte', waveDuration: 35, playerSpeedMultiplier: 1.0, enemySpeedMultiplier: 1.0 },
+      liver: { cellColor: '#f97316', cellName: 'Hepatocyte', waveDuration: 35, playerSpeedMultiplier: 1.0, enemySpeedMultiplier: 0.8 }
+    };
+  </script>
 </body>
 </html>
